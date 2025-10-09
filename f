@@ -8,9 +8,11 @@ local fruitNames = {
     ["Alluring Apple"]=true,
     ["Apple"]=true,
     ["Banana"]=true,
-    ["Pair"]=true,
+    ["Pear"]=true,
     ["Orange"]=true,
-    ["Mango"]=true
+    ["Mango"]=true,
+	["Life Up Fruit"]=true,
+	["Chakra Fruit"]=true
 }
 
 local running = false
