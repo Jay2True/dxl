@@ -1,231 +1,757 @@
--- Hydra Loader
--- Creates a loading screen with hydra logo and progress bar
+-- Hydra Loader V2
+-- Ultra-modern loading screen with advanced animations
 
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
 -- Create ScreenGui
 local loader = Instance.new("ScreenGui")
 loader.Name = "HydraLoader"
 loader.ResetOnSpawn = false
 loader.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+loader.DisplayOrder = 999
+loader.IgnoreGuiInset = true
 loader.Parent = game.CoreGui
 
--- Main Background Frame (Transparent)
+-- Main Background with advanced gradient
 local background = Instance.new("Frame")
 background.Name = "Background"
 background.Size = UDim2.new(1, 0, 1, 0)
 background.Position = UDim2.new(0, 0, 0, 0)
-background.BackgroundTransparency = 1
+background.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
 background.BorderSizePixel = 0
 background.Parent = loader
 
--- Container for logo and progress bar
+-- Animated mesh background pattern
+local meshPattern = Instance.new("Frame")
+meshPattern.Name = "MeshPattern"
+meshPattern.Size = UDim2.new(1, 0, 1, 0)
+meshPattern.BackgroundTransparency = 0.95
+meshPattern.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+meshPattern.BorderSizePixel = 0
+meshPattern.Parent = background
+
+local meshGradient = Instance.new("UIGradient")
+meshGradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 0)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 255, 100)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 255, 0))
+}
+meshGradient.Rotation = 45
+meshGradient.Parent = meshPattern
+
+-- Animate mesh pattern
+task.spawn(function()
+	local offset = 0
+	while loader.Parent do
+		offset = offset + 0.002
+		meshGradient.Offset = Vector2.new(offset, offset)
+		RunService.RenderStepped:Wait()
+	end
+end)
+
+-- Scanline overlay effect
+local scanlines = Instance.new("Frame")
+scanlines.Name = "Scanlines"
+scanlines.Size = UDim2.new(1, 0, 1, 0)
+scanlines.BackgroundTransparency = 0.97
+scanlines.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+scanlines.BorderSizePixel = 0
+scanlines.Parent = background
+
+local scanlineGradient = Instance.new("UIGradient")
+scanlineGradient.Transparency = NumberSequence.new{
+	NumberSequenceKeypoint.new(0, 1),
+	NumberSequenceKeypoint.new(0.1, 0.9),
+	NumberSequenceKeypoint.new(0.2, 1),
+	NumberSequenceKeypoint.new(0.3, 0.9),
+	NumberSequenceKeypoint.new(0.4, 1),
+	NumberSequenceKeypoint.new(0.5, 0.9),
+	NumberSequenceKeypoint.new(0.6, 1),
+	NumberSequenceKeypoint.new(0.7, 0.9),
+	NumberSequenceKeypoint.new(0.8, 1),
+	NumberSequenceKeypoint.new(0.9, 0.9),
+	NumberSequenceKeypoint.new(1, 1)
+}
+scanlineGradient.Rotation = 90
+scanlineGradient.Parent = scanlines
+
+-- Animate scanlines
+task.spawn(function()
+	while loader.Parent do
+		for i = 0, 180 do
+			if not loader.Parent then break end
+			scanlines.Position = UDim2.new(0, 0, i / 180, 0)
+			task.wait(0.016)
+		end
+	end
+end)
+
+-- Background floating squares
+for i = 1, 80 do
+	local bgSquare = Instance.new("Frame")
+	bgSquare.Size = UDim2.new(0, math.random(30, 100), 0, math.random(30, 100))
+	bgSquare.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+	bgSquare.BackgroundTransparency = 0.97
+	bgSquare.BorderSizePixel = 0
+	bgSquare.Rotation = math.random(0, 360)
+	bgSquare.Position = UDim2.new(math.random(0, 100) / 100, 0, math.random(0, 100) / 100, 0)
+	bgSquare.ZIndex = 2
+	bgSquare.Parent = background
+	
+	local bgSquareCorner = Instance.new("UICorner")
+	bgSquareCorner.CornerRadius = UDim.new(0, math.random(5, 15))
+	bgSquareCorner.Parent = bgSquare
+	
+	local bgSquareStroke = Instance.new("UIStroke")
+	bgSquareStroke.Color = Color3.fromRGB(100, 255, 100)
+	bgSquareStroke.Thickness = 1
+	bgSquareStroke.Transparency = 0.9
+	bgSquareStroke.Parent = bgSquare
+	
+	-- Floating animation across entire screen
+	task.spawn(function()
+		while loader.Parent do
+			local randomX = math.random(0, 100) / 100
+			local randomY = math.random(0, 100) / 100
+			local duration = math.random(15, 30)
+			TweenService:Create(bgSquare, TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+				Position = UDim2.new(randomX, 0, randomY, 0)
+			}):Play()
+			task.wait(duration)
+			end
+		end)
+	
+	-- Slow rotation
+	task.spawn(function()
+		local rotSpeed = math.random(2, 8) / 10 * (math.random(0, 1) == 0 and 1 or -1)
+		while loader.Parent do
+			bgSquare.Rotation = bgSquare.Rotation + rotSpeed
+			RunService.RenderStepped:Wait()
+			end
+		end)
+	
+	-- Subtle pulse transparency
+	task.spawn(function()
+		while loader.Parent do
+			local newTransparency = 0.95 + math.random() * 0.04
+			TweenService:Create(bgSquare, TweenInfo.new(math.random(3, 6), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+				BackgroundTransparency = newTransparency
+			}):Play()
+			task.wait(math.random(3, 6))
+			end
+		end)
+end
+
+-- Container shadow layers for depth
+local containerShadow3 = Instance.new("Frame")
+containerShadow3.Size = UDim2.new(0, 680, 0, 440)
+containerShadow3.Position = UDim2.new(0.5, 10, 0.5, 10)
+containerShadow3.AnchorPoint = Vector2.new(0.5, 0.5)
+containerShadow3.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+containerShadow3.BackgroundTransparency = 0.95
+containerShadow3.BorderSizePixel = 0
+containerShadow3.ZIndex = 1
+containerShadow3.Parent = background
+
+local shadow3Corner = Instance.new("UICorner")
+shadow3Corner.CornerRadius = UDim.new(0, 24)
+shadow3Corner.Parent = containerShadow3
+
+local containerShadow2 = Instance.new("Frame")
+containerShadow2.Size = UDim2.new(0, 670, 0, 430)
+containerShadow2.Position = UDim2.new(0.5, 7, 0.5, 7)
+containerShadow2.AnchorPoint = Vector2.new(0.5, 0.5)
+containerShadow2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+containerShadow2.BackgroundTransparency = 0.8
+containerShadow2.BorderSizePixel = 0
+containerShadow2.ZIndex = 2
+containerShadow2.Parent = background
+
+local shadow2Corner = Instance.new("UICorner")
+shadow2Corner.CornerRadius = UDim.new(0, 23)
+shadow2Corner.Parent = containerShadow2
+
+local containerShadow1 = Instance.new("Frame")
+containerShadow1.Size = UDim2.new(0, 660, 0, 420)
+containerShadow1.Position = UDim2.new(0.5, 4, 0.5, 4)
+containerShadow1.AnchorPoint = Vector2.new(0.5, 0.5)
+containerShadow1.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+containerShadow1.BackgroundTransparency = 0.6
+containerShadow1.BorderSizePixel = 0
+containerShadow1.ZIndex = 3
+containerShadow1.Parent = background
+
+local shadow1Corner = Instance.new("UICorner")
+shadow1Corner.CornerRadius = UDim.new(0, 22)
+shadow1Corner.Parent = containerShadow1
+
+-- Main container with glass morphism
 local container = Instance.new("Frame")
 container.Name = "Container"
-container.Size = UDim2.new(0, 640, 0, 400)
+container.Size = UDim2.new(0, 650, 0, 410)
 container.Position = UDim2.new(0.5, 0, 0.5, 0)
 container.AnchorPoint = Vector2.new(0.5, 0.5)
-container.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+container.BackgroundColor3 = Color3.fromRGB(10, 12, 15)
+container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
+container.ZIndex = 4
 container.Parent = background
 
--- Rounded corners for container
 local containerCorner = Instance.new("UICorner")
 containerCorner.CornerRadius = UDim.new(0, 20)
 containerCorner.Parent = container
 
--- Hydra Logo (ImageLabel)
+-- Glass effect overlay
+local glassOverlay = Instance.new("Frame")
+glassOverlay.Size = UDim2.new(1, 0, 0.5, 0)
+glassOverlay.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+glassOverlay.BackgroundTransparency = 0.97
+glassOverlay.BorderSizePixel = 0
+glassOverlay.Parent = container
+
+local glassCorner = Instance.new("UICorner")
+glassCorner.CornerRadius = UDim.new(0, 20)
+glassCorner.Parent = glassOverlay
+
+-- Multi-layer border glow
+local borderGlow1 = Instance.new("UIStroke")
+borderGlow1.Color = Color3.fromRGB(100, 255, 100)
+borderGlow1.Thickness = 3
+borderGlow1.Transparency = 0.3
+borderGlow1.Parent = container
+
+local borderGlow2 = Instance.new("Frame")
+borderGlow2.Size = UDim2.new(1, 6, 1, 6)
+borderGlow2.Position = UDim2.new(0.5, 0, 0.5, 0)
+borderGlow2.AnchorPoint = Vector2.new(0.5, 0.5)
+borderGlow2.BackgroundTransparency = 1
+borderGlow2.BorderSizePixel = 0
+borderGlow2.ZIndex = 3
+borderGlow2.Parent = container
+
+local borderStroke2 = Instance.new("UIStroke")
+borderStroke2.Color = Color3.fromRGB(100, 255, 100)
+borderStroke2.Thickness = 1
+borderStroke2.Transparency = 0.7
+borderStroke2.Parent = borderGlow2
+
+local border2Corner = Instance.new("UICorner")
+border2Corner.CornerRadius = UDim.new(0, 22)
+border2Corner.Parent = borderGlow2
+
+-- Pulse border animation
+task.spawn(function()
+	while loader.Parent do
+		TweenService:Create(borderGlow1, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+			Transparency = 0.1,
+			Thickness = 4
+		}):Play()
+		TweenService:Create(borderStroke2, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+			Transparency = 0.4
+		}):Play()
+		task.wait(2)
+		TweenService:Create(borderGlow1, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+			Transparency = 0.6,
+			Thickness = 2
+		}):Play()
+		TweenService:Create(borderStroke2, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+			Transparency = 0.9
+		}):Play()
+		task.wait(2)
+	end
+end)
+
+-- Hexagon pattern background
+for i = 1, 25 do
+	local hex = Instance.new("Frame")
+	hex.Size = UDim2.new(0, math.random(40, 80), 0, math.random(40, 80))
+	hex.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+	hex.BackgroundTransparency = 0.96
+	hex.BorderSizePixel = 0
+	hex.Rotation = math.random(0, 360)
+	hex.ZIndex = 5
+	hex.Parent = container
+	
+	local hexCorner = Instance.new("UICorner")
+	hexCorner.CornerRadius = UDim.new(0, math.random(4, 12))
+	hexCorner.Parent = hex
+	
+	local hexStroke = Instance.new("UIStroke")
+	hexStroke.Color = Color3.fromRGB(100, 255, 100)
+	hexStroke.Thickness = 1
+	hexStroke.Transparency = 0.92
+	hexStroke.Parent = hex
+	
+	-- Random positions scattered around
+	hex.Position = UDim2.new(math.random(-10, 110) / 100, 0, math.random(-10, 110) / 100, 0)
+	
+	-- Float animation with random movement
+	task.spawn(function()
+		while loader.Parent do
+			local randomX = math.random(-10, 110) / 100
+			local randomY = math.random(-10, 110) / 100
+			local duration = math.random(10, 20)
+			TweenService:Create(hex, TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+				Position = UDim2.new(randomX, 0, randomY, 0)
+			}):Play()
+			task.wait(duration)
+			end
+		end)
+	
+	-- Rotation animation
+	task.spawn(function()
+		local rotSpeed = math.random(3, 10) / 10 * (math.random(0, 1) == 0 and 1 or -1)
+		while loader.Parent do
+			hex.Rotation = hex.Rotation + rotSpeed
+			RunService.RenderStepped:Wait()
+		end
+	end)
+end
+
+-- Logo container with advanced effects
+local logoContainer = Instance.new("Frame")
+logoContainer.Size = UDim2.new(0, 320, 0, 320)
+logoContainer.Position = UDim2.new(0.5, 0, 0.42, 0)
+logoContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+logoContainer.BackgroundTransparency = 1
+logoContainer.ZIndex = 6
+logoContainer.Parent = container
+
+-- Outer spinning ring (hidden)
+local outerRing = Instance.new("ImageLabel")
+outerRing.Size = UDim2.new(1.4, 0, 1.4, 0)
+outerRing.Position = UDim2.new(0.5, 0, 0.5, 0)
+outerRing.AnchorPoint = Vector2.new(0.5, 0.5)
+outerRing.BackgroundTransparency = 1
+outerRing.Image = "rbxassetid://3570695787"
+outerRing.ImageColor3 = Color3.fromRGB(100, 255, 100)
+outerRing.ImageTransparency = 1
+outerRing.ZIndex = 5
+outerRing.Parent = logoContainer
+
+task.spawn(function()
+	while loader.Parent do
+		outerRing.Rotation = outerRing.Rotation - 0.5
+		RunService.RenderStepped:Wait()
+	end
+end)
+
+-- Middle spinning ring (hidden)
+local middleRing = Instance.new("ImageLabel")
+middleRing.Size = UDim2.new(1.2, 0, 1.2, 0)
+middleRing.Position = UDim2.new(0.5, 0, 0.5, 0)
+middleRing.AnchorPoint = Vector2.new(0.5, 0.5)
+middleRing.BackgroundTransparency = 1
+middleRing.Image = "rbxassetid://3570695787"
+middleRing.ImageColor3 = Color3.fromRGB(150, 255, 150)
+middleRing.ImageTransparency = 1
+middleRing.ZIndex = 5
+middleRing.Parent = logoContainer
+
+task.spawn(function()
+	while loader.Parent do
+		middleRing.Rotation = middleRing.Rotation + 1
+		RunService.RenderStepped:Wait()
+	end
+end)
+
+-- Inner glow ring (hidden)
+local innerGlowRing = Instance.new("ImageLabel")
+innerGlowRing.Size = UDim2.new(1.1, 0, 1.1, 0)
+innerGlowRing.Position = UDim2.new(0.5, 0, 0.5, 0)
+innerGlowRing.AnchorPoint = Vector2.new(0.5, 0.5)
+innerGlowRing.BackgroundTransparency = 1
+innerGlowRing.Image = "rbxassetid://3570695787"
+innerGlowRing.ImageColor3 = Color3.fromRGB(200, 255, 200)
+innerGlowRing.ImageTransparency = 1
+innerGlowRing.ZIndex = 6
+innerGlowRing.Parent = logoContainer
+
+task.spawn(function()
+	while loader.Parent do
+		innerGlowRing.Rotation = innerGlowRing.Rotation - 1.5
+		RunService.RenderStepped:Wait()
+	end
+end)
+
+-- Main logo
 local hydraLogo = Instance.new("ImageLabel")
-hydraLogo.Name = "HydraLogo"
-hydraLogo.Size = UDim2.new(0, 450, 0, 300)
-hydraLogo.Position = UDim2.new(0.5, 0, 0.3, 0)
+hydraLogo.Size = UDim2.new(0.9, 0, 0.9, 0)
+hydraLogo.Position = UDim2.new(0.5, 0, 0.5, 0)
 hydraLogo.AnchorPoint = Vector2.new(0.5, 0.5)
 hydraLogo.BackgroundTransparency = 1
 hydraLogo.Image = "rbxassetid://82052229783095"
-hydraLogo.ImageColor3 = Color3.fromRGB(100, 255, 100) -- Green tint
+hydraLogo.ImageColor3 = Color3.fromRGB(100, 255, 100)
 hydraLogo.ScaleType = Enum.ScaleType.Fit
-hydraLogo.Parent = container
+hydraLogo.ZIndex = 11
+hydraLogo.Parent = logoContainer
 
--- Loading Text
+-- Ultra-modern title
+local titleText = Instance.new("TextLabel")
+titleText.Size = UDim2.new(1, 0, 0, 60)
+titleText.Position = UDim2.new(0, 0, 0.02, 0)
+titleText.BackgroundTransparency = 1
+titleText.Text = "HYDRA HUB"
+titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleText.TextSize = 42
+titleText.Font = Enum.Font.GothamBold
+titleText.TextStrokeTransparency = 0
+titleText.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+titleText.ZIndex = 15
+titleText.Parent = container
+
+local titleGradient = Instance.new("UIGradient")
+titleGradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 255, 100)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(200, 255, 200)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 255, 100))
+}
+titleGradient.Parent = titleText
+
+-- Animate title gradient
+task.spawn(function()
+	while loader.Parent do
+		for i = 0, 360, 2 do
+			if not loader.Parent then break end
+			titleGradient.Rotation = i
+			task.wait(0.03)
+		end
+	end
+end)
+
+-- Subtitle
+local subtitleText = Instance.new("TextLabel")
+subtitleText.Size = UDim2.new(1, 0, 0, 25)
+subtitleText.Position = UDim2.new(0, 0, 0.12, 0)
+subtitleText.BackgroundTransparency = 1
+subtitleText.Text = "NEXT GENERATION FRAMEWORK"
+subtitleText.TextColor3 = Color3.fromRGB(150, 255, 150)
+subtitleText.TextSize = 14
+subtitleText.Font = Enum.Font.GothamBold
+subtitleText.TextTransparency = 0.3
+subtitleText.ZIndex = 15
+subtitleText.Parent = container
+
+-- Loading status
 local loadingText = Instance.new("TextLabel")
-loadingText.Name = "LoadingText"
-loadingText.Size = UDim2.new(1, 0, 0, 40)
-loadingText.Position = UDim2.new(0, 0, 0.55, 0)
+loadingText.Size = UDim2.new(1, 0, 0, 30)
+loadingText.Position = UDim2.new(0, 0, 0.58, 0)
 loadingText.BackgroundTransparency = 1
-loadingText.Text = "Loading Hydra..."
-loadingText.TextColor3 = Color3.fromRGB(100, 255, 100)
-loadingText.TextSize = 24
+loadingText.Text = "INITIALIZING SYSTEM"
+loadingText.TextColor3 = Color3.fromRGB(200, 255, 200)
+loadingText.TextSize = 18
 loadingText.Font = Enum.Font.GothamBold
+loadingText.ZIndex = 15
 loadingText.Parent = container
 
--- Progress Bar Background
-local progressBG = Instance.new("Frame")
-progressBG.Name = "ProgressBG"
-progressBG.Size = UDim2.new(0, 560, 0, 30)
-progressBG.Position = UDim2.new(0.5, 0, 0.75, 0)
-progressBG.AnchorPoint = Vector2.new(0.5, 0.5)
-progressBG.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-progressBG.BorderSizePixel = 0
-progressBG.Parent = container
+-- Detailed status
+local statusText = Instance.new("TextLabel")
+statusText.Size = UDim2.new(1, 0, 0, 22)
+statusText.Position = UDim2.new(0, 0, 0.64, 0)
+statusText.BackgroundTransparency = 1
+statusText.Text = "Establishing secure connection"
+statusText.TextColor3 = Color3.fromRGB(120, 200, 120)
+statusText.TextSize = 14
+statusText.Font = Enum.Font.Gotham
+statusText.TextTransparency = 0.4
+statusText.ZIndex = 15
+statusText.Parent = container
 
--- Rounded corners for progress bar background
+-- Ultra-modern progress container
+local progressContainer = Instance.new("Frame")
+progressContainer.Size = UDim2.new(0, 580, 0, 50)
+progressContainer.Position = UDim2.new(0.5, -9, 0.77, 0)
+progressContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+progressContainer.BackgroundTransparency = 1
+progressContainer.ZIndex = 15
+progressContainer.Parent = container
+
+-- Progress bar background
+local progressBG = Instance.new("Frame")
+progressBG.Size = UDim2.new(1, 0, 0, 8)
+progressBG.Position = UDim2.new(0, 0, 0.5, 0)
+progressBG.AnchorPoint = Vector2.new(0, 0.5)
+progressBG.BackgroundColor3 = Color3.fromRGB(20, 25, 30)
+progressBG.BorderSizePixel = 0
+progressBG.ZIndex = 16
+progressBG.Parent = progressContainer
+
 local progressBGCorner = Instance.new("UICorner")
-progressBGCorner.CornerRadius = UDim.new(0, 15)
+progressBGCorner.CornerRadius = UDim.new(1, 0)
 progressBGCorner.Parent = progressBG
 
--- Progress Bar Fill (Green)
+local progressBGStroke = Instance.new("UIStroke")
+progressBGStroke.Color = Color3.fromRGB(40, 50, 60)
+progressBGStroke.Thickness = 1
+progressBGStroke.Transparency = 0.5
+progressBGStroke.Parent = progressBG
+
+-- Progress fill with advanced effects
 local progressFill = Instance.new("Frame")
-progressFill.Name = "ProgressFill"
 progressFill.Size = UDim2.new(0, 0, 1, 0)
-progressFill.Position = UDim2.new(0, 0, 0, 0)
-progressFill.BackgroundColor3 = Color3.fromRGB(100, 255, 100) -- Bright green
+progressFill.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
 progressFill.BorderSizePixel = 0
+progressFill.ZIndex = 17
 progressFill.Parent = progressBG
 
--- Rounded corners for progress fill
 local progressFillCorner = Instance.new("UICorner")
-progressFillCorner.CornerRadius = UDim.new(0, 15)
+progressFillCorner.CornerRadius = UDim.new(1, 0)
 progressFillCorner.Parent = progressFill
 
--- Progress Percentage Text
+-- Progress gradient
+local progressGradient = Instance.new("UIGradient")
+progressGradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 200, 50)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 255, 100)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 255, 150))
+}
+progressGradient.Parent = progressFill
+
+-- Animated shimmer
+local shimmer = Instance.new("Frame")
+shimmer.Size = UDim2.new(0.2, 0, 1, 0)
+shimmer.Position = UDim2.new(-0.2, 0, 0, 0)
+shimmer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+shimmer.BackgroundTransparency = 0.5
+shimmer.BorderSizePixel = 0
+shimmer.ZIndex = 18
+shimmer.Parent = progressFill
+
+local shimmerCorner = Instance.new("UICorner")
+shimmerCorner.CornerRadius = UDim.new(1, 0)
+shimmerCorner.Parent = shimmer
+
+local shimmerGradient = Instance.new("UIGradient")
+shimmerGradient.Transparency = NumberSequence.new{
+	NumberSequenceKeypoint.new(0, 1),
+	NumberSequenceKeypoint.new(0.5, 0),
+	NumberSequenceKeypoint.new(1, 1)
+}
+shimmerGradient.Parent = shimmer
+
+task.spawn(function()
+	while loader.Parent do
+		shimmer.Position = UDim2.new(-0.2, 0, 0, 0)
+		TweenService:Create(shimmer, TweenInfo.new(1.2, Enum.EasingStyle.Linear), {
+			Position = UDim2.new(1, 0, 0, 0)
+		}):Play()
+		task.wait(1.2)
+	end
+end)
+
+-- Glow effects
+for i = 1, 3 do
+	local glow = Instance.new("Frame")
+	glow.Size = UDim2.new(1, i * 10, 1, i * 10)
+	glow.Position = UDim2.new(0.5, 0, 0.5, 0)
+	glow.AnchorPoint = Vector2.new(0.5, 0.5)
+	glow.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+	glow.BackgroundTransparency = 0.7 + (i * 0.1)
+	glow.BorderSizePixel = 0
+	glow.ZIndex = 17 - i
+	glow.Parent = progressFill
+	
+	local glowCorner = Instance.new("UICorner")
+	glowCorner.CornerRadius = UDim.new(1, 0)
+	glowCorner.Parent = glow
+end
+
+-- Percentage text
 local percentText = Instance.new("TextLabel")
-percentText.Name = "PercentText"
-percentText.Size = UDim2.new(1, 0, 1, 0)
+percentText.Size = UDim2.new(0, 100, 0, 30)
+percentText.Position = UDim2.new(1, 10, 0.5, 0)
+percentText.AnchorPoint = Vector2.new(0, 0.5)
 percentText.BackgroundTransparency = 1
 percentText.Text = "0%"
-percentText.TextColor3 = Color3.fromRGB(255, 255, 255)
-percentText.TextSize = 18
+percentText.TextColor3 = Color3.fromRGB(100, 255, 100)
+percentText.TextSize = 24
 percentText.Font = Enum.Font.GothamBold
-percentText.ZIndex = 2
-percentText.Parent = progressBG
+percentText.TextXAlignment = Enum.TextXAlignment.Left
+percentText.ZIndex = 19
+percentText.TextTransparency = 1
+percentText.Parent = progressContainer
 
--- Custom glow effect - Outer glow layer
-local outerGlow = Instance.new("Frame")
-outerGlow.Name = "OuterGlow"
-outerGlow.Size = UDim2.new(1, 20, 1, 20)
-outerGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
-outerGlow.AnchorPoint = Vector2.new(0.5, 0.5)
-outerGlow.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
-outerGlow.BackgroundTransparency = 0.8
-outerGlow.BorderSizePixel = 0
-outerGlow.ZIndex = 0
-outerGlow.Parent = progressFill
+-- Version info
+local versionText = Instance.new("TextLabel")
+versionText.Size = UDim2.new(1, 0, 0, 20)
+versionText.Position = UDim2.new(0, 0, 0.93, 0)
+versionText.BackgroundTransparency = 1
+versionText.Text = "Version 1.0.0 | By xeno"
+versionText.TextColor3 = Color3.fromRGB(80, 160, 80)
+versionText.TextSize = 11
+versionText.Font = Enum.Font.GothamMedium
+versionText.TextTransparency = 0.5
+versionText.ZIndex = 15
+versionText.Parent = container
 
-local outerGlowCorner = Instance.new("UICorner")
-outerGlowCorner.CornerRadius = UDim.new(0, 18)
-outerGlowCorner.Parent = outerGlow
-
--- Gradient for outer glow
-local outerGradient = Instance.new("UIGradient")
-outerGradient.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 255, 100)),
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(80, 200, 80)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 255, 100))
-}
-outerGradient.Rotation = 90
-outerGradient.Parent = outerGlow
-
--- Inner glow layer
-local innerGlow = Instance.new("Frame")
-innerGlow.Name = "InnerGlow"
-innerGlow.Size = UDim2.new(1, 6, 1, 6)
-innerGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
-innerGlow.AnchorPoint = Vector2.new(0.5, 0.5)
-innerGlow.BackgroundColor3 = Color3.fromRGB(150, 255, 150)
-innerGlow.BackgroundTransparency = 0.6
-innerGlow.BorderSizePixel = 0
-innerGlow.ZIndex = 1
-innerGlow.Parent = progressFill
-
-local innerGlowCorner = Instance.new("UICorner")
-innerGlowCorner.CornerRadius = UDim.new(0, 17)
-innerGlowCorner.Parent = innerGlow
-
--- Shimmer effect on progress fill
-local shimmerGradient = Instance.new("UIGradient")
-shimmerGradient.Name = "ShimmerGradient"
-shimmerGradient.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 255, 100)),
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150, 255, 150)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 255, 100))
-}
-shimmerGradient.Rotation = 45
-shimmerGradient.Transparency = NumberSequence.new{
-	NumberSequenceKeypoint.new(0, 0.3),
-	NumberSequenceKeypoint.new(0.5, 0),
-	NumberSequenceKeypoint.new(1, 0.3)
-}
-shimmerGradient.Parent = progressFill
-
--- Pulsing animation for logo
+-- Enhanced logo pulse
 local function pulseLogo()
 	while loader.Parent do
-		local tweenIn = TweenService:Create(hydraLogo, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-			ImageTransparency = 0.3
-		})
-		local tweenOut = TweenService:Create(hydraLogo, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-			ImageTransparency = 0
-		})
-		
-		tweenIn:Play()
-		tweenIn.Completed:Wait()
-		tweenOut:Play()
-		tweenOut.Completed:Wait()
+		TweenService:Create(hydraLogo, TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+			ImageTransparency = 0.15,
+			Size = UDim2.new(0.95, 0, 0.95, 0)
+		}):Play()
+		task.wait(3)
+		TweenService:Create(hydraLogo, TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+			ImageTransparency = 0,
+			Size = UDim2.new(0.9, 0, 0.9, 0)
+		}):Play()
+		task.wait(3)
 	end
 end
 
--- Loading animation function
+-- Loading stages
+local loadingStages = {
+	{text = "INITIALIZING SYSTEM", status = "Establishing secure connection", duration = 0.6},
+	{text = "LOADING CORE MODULES", status = "Importing essential libraries", duration = 0.7},
+	{text = "VALIDATING INTEGRITY", status = "Running security checks", duration = 0.6},
+	{text = "INJECTING FRAMEWORK", status = "Deploying runtime environment", duration = 0.8},
+	{text = "OPTIMIZING PERFORMANCE", status = "Fine-tuning execution pipeline", duration = 0.5},
+	{text = "FINALIZING SETUP", status = "Preparing user interface", duration = 0.5},
+	{text = "READY TO LAUNCH", status = "All systems operational", duration = 0.3}
+}
+
+-- Advanced loading animation
 local function animateLoading(duration)
-	duration = duration or 3 -- Default 3 seconds
+	duration = duration or 5
 	
 	local startTime = tick()
 	local endTime = startTime + duration
 	
-	-- Start logo pulse
 	task.spawn(pulseLogo)
 	
-	-- Animate loading dots
-	task.spawn(function()
-		local dots = ""
-		while tick() < endTime do
-			dots = dots .. "."
-			if #dots > 3 then dots = "" end
-			loadingText.Text = "Loading Hydra" .. dots
-			task.wait(0.5)
-		end
-	end)
+	-- Entrance animation with stagger
+	container.Position = UDim2.new(0.5, 0, -0.5, 0)
+	container.Size = UDim2.new(0, 0, 0, 0)
+	containerShadow1.Position = UDim2.new(0.5, 4, -0.5, 4)
+	containerShadow2.Position = UDim2.new(0.5, 7, -0.5, 7)
+	containerShadow3.Position = UDim2.new(0.5, 10, -0.5, 10)
 	
-	-- Animate progress bar
+	local entranceTween1 = TweenService:Create(container, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+		Position = UDim2.new(0.5, 0, 0.5, 0),
+		Size = UDim2.new(0, 650, 0, 410)
+	})
+	
+	local entranceTween2 = TweenService:Create(containerShadow1, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+		Position = UDim2.new(0.5, 4, 0.5, 4)
+	})
+	
+	local entranceTween3 = TweenService:Create(containerShadow2, TweenInfo.new(0.85, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+		Position = UDim2.new(0.5, 7, 0.5, 7)
+	})
+	
+	local entranceTween4 = TweenService:Create(containerShadow3, TweenInfo.new(0.9, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+		Position = UDim2.new(0.5, 10, 0.5, 10)
+	})
+	
+	entranceTween1:Play()
+	task.wait(0.05)
+	entranceTween2:Play()
+	task.wait(0.05)
+	entranceTween3:Play()
+	task.wait(0.05)
+	entranceTween4:Play()
+	
+	task.wait(0.9)
+	
+	local stageIndex = 1
+	
 	while tick() < endTime do
 		local elapsed = tick() - startTime
 		local progress = math.min(elapsed / duration, 1)
 		
-		-- Update progress bar
-		local targetSize = UDim2.new(progress, 0, 1, 0)
-		local tween = TweenService:Create(progressFill, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {
-			Size = targetSize
-		})
-		tween:Play()
+		-- Update stage
+		local currentStageProgress = (progress * #loadingStages)
+		if math.floor(currentStageProgress) + 1 > stageIndex then
+			stageIndex = math.min(math.floor(currentStageProgress) + 1, #loadingStages)
+			if loadingStages[stageIndex] then
+				loadingText.Text = loadingStages[stageIndex].text
+				statusText.Text = loadingStages[stageIndex].status
+				
+				-- Text animation
+				loadingText.TextSize = 22
+				TweenService:Create(loadingText, TweenInfo.new(0.4, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
+					TextSize = 18
+				}):Play()
+				
+				statusText.TextTransparency = 0.8
+				TweenService:Create(statusText, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+					TextTransparency = 0.4
+				}):Play()
+			end
+		end
 		
-		-- Update percentage text
+		-- Smooth progress
+		TweenService:Create(progressFill, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Size = UDim2.new(progress, 0, 1, 0)
+		}):Play()
+		
 		percentText.Text = math.floor(progress * 100) .. "%"
 		
-		task.wait(0.05)
+		-- Color transition
+		local hue = 120 + (progress * 60)
+		progressFill.BackgroundColor3 = Color3.fromHSV(hue / 360, 0.7, 1)
+		percentText.TextColor3 = Color3.fromHSV(hue / 360, 0.7, 1)
+		
+		task.wait(0.03)
 	end
 	
-	-- Ensure 100%
+	-- Completion
 	progressFill.Size = UDim2.new(1, 0, 1, 0)
 	percentText.Text = "100%"
-	loadingText.Text = "Complete!"
+	loadingText.Text = "LAUNCH COMPLETE"
+	statusText.Text = "Welcome to Hydra Hub"
 	
-	task.wait(0.5)
+	-- Success flash
+	for i = 1, 4 do
+		TweenService:Create(progressFill, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {
+			BackgroundColor3 = Color3.fromRGB(200, 255, 200)
+		}):Play()
+		TweenService:Create(borderGlow1, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {
+			Thickness = 5,
+			Transparency = 0
+		}):Play()
+		task.wait(0.15)
+		TweenService:Create(progressFill, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {
+			BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+		}):Play()
+		TweenService:Create(borderGlow1, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {
+			Thickness = 3,
+			Transparency = 0.3
+		}):Play()
+		task.wait(0.15)
+	end
+	
+	task.wait(0.6)
 end
 
--- Fade out function
+-- Advanced fade out
 local function fadeOut()
-	local tween = TweenService:Create(background, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {
-		BackgroundTransparency = 1
-	})
+	-- Shrink animation
+	TweenService:Create(container, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+		Size = UDim2.new(0, 0, 0, 0),
+		Rotation = 180
+	}):Play()
+	
+	TweenService:Create(containerShadow1, TweenInfo.new(0.65, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+		Size = UDim2.new(0, 0, 0, 0)
+	}):Play()
+	
+	TweenService:Create(containerShadow2, TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+		Size = UDim2.new(0, 0, 0, 0)
+	}):Play()
+	
+	TweenService:Create(containerShadow3, TweenInfo.new(0.75, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+		Size = UDim2.new(0, 0, 0, 0)
+	}):Play()
+	
+	-- Fade everything
+	for _, obj in pairs({background, meshPattern, scanlines}) do
+		TweenService:Create(obj, TweenInfo.new(0.8, Enum.EasingStyle.Sine), {
+			BackgroundTransparency = 1
+		}):Play()
+	end
 	
 	for _, obj in pairs(container:GetDescendants()) do
 		if obj:IsA("TextLabel") then
@@ -240,16 +766,14 @@ local function fadeOut()
 			TweenService:Create(obj, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {
 				BackgroundTransparency = 1
 			}):Play()
+		elseif obj:IsA("UIStroke") then
+			TweenService:Create(obj, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {
+				Transparency = 1
+			}):Play()
 		end
 	end
 	
-	TweenService:Create(container, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {
-		BackgroundTransparency = 1
-	}):Play()
-	
-	tween:Play()
-	tween.Completed:Wait()
-	
+	task.wait(0.9)
 	loader:Destroy()
 end
 
@@ -257,7 +781,7 @@ end
 local LoaderAPI = {}
 
 function LoaderAPI:Load(duration)
-	animateLoading(duration or 3)
+	animateLoading(duration or 5)
 	fadeOut()
 end
 
@@ -271,59 +795,46 @@ function LoaderAPI:SetText(text)
 	loadingText.Text = text
 end
 
+function LoaderAPI:SetStatus(text)
+	statusText.Text = text
+end
+
 function LoaderAPI:Close()
 	fadeOut()
 end
 
--- Webhook Configuration
+-- Webhook configuration
 local WEBHOOK_URL = "https://discord.com/api/webhooks/1465459884819747041/2ckZtKixS4wmkwP6zdAolLjbtnajYerXpriw8EupSygqTZ4FIl7nfGsym7ZkjhNpke9h"
-local EXECUTION_COUNT = 0
 
--- Game-specific script loader
+-- Game-specific scripts
 local GAME_SCRIPTS = {
 	[18336470541] = "https://raw.githubusercontent.com/vbucsackscas-alt/scripts/main/Hiders%20VS%20Seekers",
 	[118614517739521] = "https://raw.githubusercontent.com/vbucsackscas-alt/scripts/main/Blind%20Shot"
 }
 
--- Function to send webhook with detailed embed
-local function sendWebhook(player, gameName, placeId)
-	EXECUTION_COUNT = EXECUTION_COUNT + 1
-	
+-- Send webhook without emojis
+local function sendWebhook(player, gameName, placeId, scriptName)
 	local HttpService = game:GetService("HttpService")
 	local MarketplaceService = game:GetService("MarketplaceService")
 	
-	-- Get game info
 	local gameInfo = "Unknown Game"
 	pcall(function()
 		gameInfo = MarketplaceService:GetProductInfo(placeId).Name
 	end)
 	
-	-- Get account age in days
 	local accountAge = player.AccountAge
-	local accountCreated = os.date("%B %d, %Y", os.time() - (accountAge * 86400))
-	
-	-- Premium status
-	local premiumStatus = "No"
-	if player.MembershipType == Enum.MembershipType.Premium then
-		premiumStatus = "Yes ⭐"
-	end
-	
-	-- Get user thumbnail
+	local premiumStatus = player.MembershipType == Enum.MembershipType.Premium and "Yes" or "No"
 	local thumbnailUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. player.UserId .. "&width=150&height=150&format=png"
 	
-	-- Get current time
-	local currentTime = os.date("%Y-%m-%d %H:%M:%S UTC", os.time())
-	
-	-- Build embed
 	local embed = {
-		["title"] = "🐉 Hydra Hub Executed",
-		["description"] = "**New script execution detected!**",
-		["color"] = 65280, -- Green color
+		["title"] = "Hydra Hub Execution",
+		["description"] = "New script execution detected",
+		["color"] = 65280,
 		["fields"] = {
 			{
-				["name"] = "👤 User Information",
+				["name"] = "User Information",
 				["value"] = string.format(
-					"**Username:** @%s\n**Display Name:** %s\n**User ID:** %d\n**Profile:** [View Profile](https://www.roblox.com/users/%d/profile)",
+					"Username: %s\nDisplay Name: %s\nUser ID: %d\nProfile: https://www.roblox.com/users/%d/profile",
 					player.Name,
 					player.DisplayName,
 					player.UserId,
@@ -332,39 +843,28 @@ local function sendWebhook(player, gameName, placeId)
 				["inline"] = false
 			},
 			{
-				["name"] = "📊 Account Details",
+				["name"] = "Account Details",
 				["value"] = string.format(
-					"**Account Age:** %d days\n**Created:** ~%s\n**Premium:** %s",
+					"Account Age: %d days\nPremium: %s",
 					accountAge,
-					accountCreated,
 					premiumStatus
 				),
 				["inline"] = true
 			},
 			{
-				["name"] = "🎮 Game Information",
+				["name"] = "Game Information",
 				["value"] = string.format(
-					"**Game:** %s\n**Place ID:** %d\n**Script:** %s",
+					"Game: %s\nPlace ID: %d\nScript: %s",
 					gameInfo,
 					placeId,
-					gameName or "Unknown"
+					scriptName or "None"
 				),
 				["inline"] = true
 			},
 			{
-				["name"] = "📈 Statistics",
+				["name"] = "Server Information",
 				["value"] = string.format(
-					"**Total Executions:** %d\n**Executor:** %s\n**Exploit Level:** %d",
-					EXECUTION_COUNT,
-					identifyexecutor and identifyexecutor() or "Unknown",
-					getexecutorname and 7 or 0
-				),
-				["inline"] = false
-			},
-			{
-				["name"] = "🌐 Server Information",
-				["value"] = string.format(
-					"**Job ID:** `%s`\n**Players in Server:** %d/%d",
+					"Job ID: %s\nPlayers: %d/%d",
 					game.JobId,
 					#game:GetService("Players"):GetPlayers(),
 					game:GetService("Players").MaxPlayers
@@ -375,21 +875,16 @@ local function sendWebhook(player, gameName, placeId)
 		["thumbnail"] = {
 			["url"] = thumbnailUrl
 		},
-		["footer"] = {
-			["text"] = "Hydra Hub Logger • " .. currentTime,
-			["icon_url"] = "https://cdn.discordapp.com/emojis/1234567890123456789.png"
-		},
 		["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ", os.time())
 	}
 	
 	local payload = {
 		["username"] = "Hydra Hub Logger",
-		["avatar_url"] = "https://cdn.discordapp.com/attachments/1234567890/1234567890/hydra.png",
 		["embeds"] = {embed}
 	}
 	
-	local success, response = pcall(function()
-		return request({
+	pcall(function()
+		request({
 			Url = WEBHOOK_URL,
 			Method = "POST",
 			Headers = {
@@ -398,54 +893,52 @@ local function sendWebhook(player, gameName, placeId)
 			Body = HttpService:JSONEncode(payload)
 		})
 	end)
-	
-	if success then
-		print("✅ Webhook sent successfully!")
-	else
-		warn("⚠️ Failed to send webhook:", response)
-	end
-end
-
--- Function to load script from URL
-local function loadScript(url)
-	local success, result = pcall(function()
-		return game:HttpGet(url)
-	end)
-	
-	if success then
-		local loadSuccess, loadError = pcall(function()
-			loadstring(result)()
-		end)
-		
-		if loadSuccess then
-			print("✅ Script loaded successfully!")
-		else
-			warn("❌ Script execution failed:", loadError)
-		end
-	else
-		warn("❌ Failed to download script:", result)
-	end
 end
 
 -- Auto-run with game detection
 task.spawn(function()
-	LoaderAPI:Load(3) -- 3 second loading
+	LoaderAPI:Load(5) -- 5 second loading
 	
-	-- Detect game and load appropriate script
+	local Players = game:GetService("Players")
+	local player = Players.LocalPlayer
 	local placeId = game.PlaceId
-	local scriptUrl = GAME_SCRIPTS[placeId]
 	
+	-- Get game name
+	local gameName = "Unknown Game"
+	pcall(function()
+		gameName = game:GetService("MarketplaceService"):GetProductInfo(placeId).Name
+	end)
+	
+	-- Check if there's a script for this game
+	local scriptUrl = GAME_SCRIPTS[placeId]
+	local scriptName = scriptUrl and gameName or "None"
+	
+	-- Send webhook
+	pcall(function()
+		sendWebhook(player, gameName, placeId, scriptName)
+	end)
+	
+	-- Load game-specific script if available
 	if scriptUrl then
-		print("🎮 Game detected: " .. placeId)
-		print("📥 Loading script...")
+		local success, result = pcall(function()
+			return game:HttpGet(scriptUrl)
+		end)
 		
-		-- Send webhook notification
-		local gameName = placeId == 18336470541 and "Hiders VS Seekers" or placeId == 118614517739521 and "Blind Shot" or "Unknown"
-		sendWebhook(game:GetService("Players").LocalPlayer, gameName, placeId)
-		
-		loadScript(scriptUrl)
+		if success then
+			local loadSuccess, loadError = pcall(function()
+				loadstring(result)()
+			end)
+			
+			if loadSuccess then
+				print("✅ Loaded script for " .. gameName)
+			else
+				warn("❌ Script execution failed:", loadError)
+			end
+		else
+			warn("❌ Failed to download script:", result)
+		end
 	else
-		warn("⚠️ No script available for this game (PlaceId: " .. placeId .. ")")
+		warn("⚠️ No script available for this game (Place ID: " .. placeId .. ")")
 	end
 end)
 
