@@ -1961,7 +1961,27 @@ task.spawn(function()
 			warn("❌ Failed to download script:", result)
 		end
 	else
-		warn("⚠️ No script available for this game (Place ID: " .. placeId .. ")")
+		-- No game-specific script - load Universal script instead
+		print("⚠️ No specific script for this game - Loading Hydra Universal...")
+		local universalUrl = "https://raw.githubusercontent.com/vbucsackscas-alt/scripts/main/Universal"
+		
+		local success, result = pcall(function()
+			return game:HttpGet(universalUrl)
+		end)
+		
+		if success then
+			local loadSuccess, loadError = pcall(function()
+				loadstring(result)()
+			end)
+			
+			if loadSuccess then
+				print("✅ Loaded Hydra Universal for " .. gameName)
+			else
+				warn("❌ Universal script execution failed:", loadError)
+			end
+		else
+			warn("❌ Failed to download Universal script:", result)
+		end
 	end
 end)
 
