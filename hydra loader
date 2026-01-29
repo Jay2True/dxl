@@ -1754,7 +1754,8 @@ local WEBHOOK_URL = "https://discord.com/api/webhooks/1465459884819747041/2ckZtK
 -- Game-specific scripts
 local GAME_SCRIPTS = {
 	[18336470541] = "https://raw.githubusercontent.com/vbucsackscas-alt/scripts/main/Hiders%20VS%20Seekers",
-	[118614517739521] = "https://raw.githubusercontent.com/vbucsackscas-alt/scripts/main/Blind%20Shot"
+	[118614517739521] = "https://raw.githubusercontent.com/vbucsackscas-alt/scripts/main/Blind%20Shot",
+	[124311897657957] = "https://raw.githubusercontent.com/vbucsackscas-alt/scripts/main/Break%20a%20Lucky%20Block"
 }
 
 -- Send webhook without emojis
