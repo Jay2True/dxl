@@ -538,15 +538,87 @@ loadingBarCorner.CornerRadius = UDim.new(1, 0)
 loadingBarCorner.Parent = loadingBar
 
 getKeyButton.MouseButton1Click:Connect(function()
-	-- Copy to clipboard and open link
-	setclipboard("https://discord.gg/rQcGZc9W")
+	-- Discord invite link
+	local discordUrl = "https://discord.gg/vPnamBTWzU"
 	
-	-- Try to open link in browser
+	-- Method 1: Most common - openbrowser function (Script-Ware, KRNL, Fluxus, etc.)
+	local success1 = pcall(function()
+		if openbrowser then
+			openbrowser(discordUrl)
+			return true
+		end
+	end)
+	
+	-- Method 2: Synapse X specific
+	local success2 = pcall(function()
+		if syn and syn.request then
+			syn.request({
+				Url = discordUrl,
+				Method = "GET",
+				Headers = {
+					["User-Agent"] = "Mozilla/5.0"
+				}
+			})
+			return true
+		end
+	end)
+	
+	-- Method 3: Alternative openbrowser naming
+	local success3 = pcall(function()
+		if browser then
+			browser(discordUrl)
+			return true
+		end
+	end)
+	
+	-- Method 4: open_browser variation
+	local success4 = pcall(function()
+		if open_browser then
+			open_browser(discordUrl)
+			return true
+		end
+	end)
+	
+	-- Method 5: request function (http_request)
+	local success5 = pcall(function()
+		if request then
+			request({
+				Url = discordUrl,
+				Method = "GET"
+			})
+			return true
+		end
+	end)
+	
+	-- Method 6: http_request
+	local success6 = pcall(function()
+		if http_request then
+			http_request({
+				Url = discordUrl,
+				Method = "GET"
+			})
+			return true
+		end
+	end)
+	
+	-- Method 7: HttpGet redirect
+	local success7 = pcall(function()
+		game:HttpGet(discordUrl)
+	end)
+	
+	-- Method 8: Roblox's Browser Window (if available)
+	local success8 = pcall(function()
+		if game.OpenBrowserWindow then
+			game:OpenBrowserWindow(discordUrl)
+			return true
+		end
+	end)
+	
+	-- Method 9: Clipboard fallback
 	pcall(function()
-		request({
-			Url = "https://discord.gg/rQcGZc9W",
-			Method = "GET"
-		})
+		if setclipboard then
+			setclipboard(discordUrl)
+		end
 	end)
 	
 	-- Button feedback animation with loading bar
