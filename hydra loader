@@ -1630,8 +1630,12 @@ end
 
 -- Enhanced save with integrity check and anti-tamper signature
 local function saveKey(key, username, hwid)
-	-- Verify file system support
-	if not writefile or not readfile or not isfile then
+	-- Verify file system support (accept multiple possible write/read function names across executors)
+	local hasRead = (type(readfile) == "function") or (type(read_file) == "function")
+	local hasIsFile = (type(isfile) == "function") or (type(is_file) == "function")
+	local hasWrite = (type(writefile) == "function") or (type(write_file) == "function") or (syn and type(syn.write_file) == "function") or (type(write_data) == "function")
+
+	if not hasWrite or not hasRead or not hasIsFile then
 		return false, "File system not supported"
 	end
 	
@@ -1652,6 +1656,13 @@ local function saveKey(key, username, hwid)
 	for i = 1, #signatureData do
 		local byte = string.byte(signatureData, i)
 		signature = signature .. string.format("%02x", (byte * 7 + i * 13) % 256)
+	end
+
+	-- pick a write function (some executors provide different names)
+	local writeFn = writefile or write_file or (syn and syn.write_file) or (write_data and write_data)
+	if not writeFn then
+		-- Leave writefile as fallback; availability is checked earlier and user will be notified
+		writeFn = writefile
 	end
 	
 	-- Create data package with checksum and signature
@@ -1685,7 +1696,8 @@ local function saveKey(key, username, hwid)
 	
 	-- Write to file with error handling
 	local success3, writeErr = pcall(function()
-		writefile(STORAGE_FILE, encrypted)
+		-- Use detected write function for better executor compatibility
+		writeFn(STORAGE_FILE, encrypted)
 	end)
 	
 	if not success3 then
@@ -1716,19 +1728,25 @@ end
 
 -- Enhanced load with validation
 local function loadKey()
-	-- Verify file system support
-	if not readfile or not isfile then
+	-- Verify file system support (accept multiple possible function names)
+	local hasRead = (type(readfile) == "function") or (type(read_file) == "function")
+	local hasIsFile = (type(isfile) == "function") or (type(is_file) == "function")
+	if not hasRead or not hasIsFile then
 		return nil, "File system not supported"
 	end
 	
+	-- Determine filesystem function names for this environment
+	local readFn = readfile or read_file
+	local isfileFn = isfile or is_file
+
 	-- Check if file exists
-	if not isfile(STORAGE_FILE) then
+	if not isfileFn(STORAGE_FILE) then
 		return nil, "No saved key found"
 	end
-	
+
 	-- Read encrypted file
 	local success1, encrypted = pcall(function()
-		return readfile(STORAGE_FILE)
+		return readFn(STORAGE_FILE)
 	end)
 	
 	if not success1 or not encrypted or encrypted == "" then
@@ -1765,7 +1783,20 @@ local function loadKey()
 	-- Verify checksum
 	local expectedChecksum = string.len(data.key) + string.len(data.username) + string.len(data.hwid)
 	if data.checksum and data.checksum ~= expectedChecksum then
-		return nil, "Checksum verification failed"
+		-- Attempt signature-based acceptance for backwards compatibility
+		local signatureData = tostring(data.key) .. tostring(data.username) .. tostring(data.hwid) .. "HYDRA_VAULT_2026_SIGNATURE"
+		local recomputed = ""
+		for i = 1, #signatureData do
+			local byte = string.byte(signatureData, i)
+			recomputed = recomputed .. string.format("%02x", (byte * 7 + i * 13) % 256)
+		end
+		if data.signature and recomputed == data.signature then
+			-- Signature matches despite checksum mismatch - accept (robust fallback)
+			-- (This handles older clients that stored different checksum schemes)
+			print("[HydraLoader] Warning: checksum mismatch but signature verified. Accepting saved key.")
+		else
+			return nil, "Checksum verification failed"
+		end
 	end
 	
 	return data, "Success"
