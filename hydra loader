@@ -1,710 +1,11 @@
--- ═══════════════════════════════════════════════════════════════════════════
--- HYDRA LOADER V3 - MAXIMUM SECURITY EDITION
--- Advanced Anti-Tamper, Anti-Debug, Encrypted Webhooks
--- ═══════════════════════════════════════════════════════════════════════════
-
--- ═══════════════════════════════════════════════════════════════════════════
--- SECURITY CORE - DO NOT MODIFY
--- ═══════════════════════════════════════════════════════════════════════════
-
-local SecurityCore = {}
-
--- ═══════════════════════════════════════════════════════════════════════════
--- ULTRA-ADVANCED MULTI-LAYER OBFUSCATION & ENCRYPTION SYSTEM
--- ═══════════════════════════════════════════════════════════════════════════
-
--- Layer 1: XOR Encryption with rotating keys
-local function xorEncrypt(str, key)
-    if not str or not key then
-        return str or ""
-    end
-    local result = {}
-    local keyLen = #key
-    for i = 1, #str do
-        local char = string.byte(str, i)
-        local keyChar = string.byte(key, ((i - 1) % keyLen) + 1)
-        table.insert(result, string.char(bit32.bxor(char, keyChar)))
-    end
-    return table.concat(result)
-end
-
--- Layer 2: Base64 Encoding (Standard)
-local function base64Encode(data)
-    local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-    return ((data:gsub('.', function(x) 
-        local r,b='',x:byte()
-        for i=8,1,-1 do r=r..(b%2^i-b%2^(i-1)>0 and '1' or '0') end
-        return r;
-    end)..'0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
-        if (#x < 6) then return '' end
-        local c=0
-        for i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end
-        return b:sub(c+1,c+1)
-    end)..({ '', '==', '=' })[#data%3+1])
-end
-
-local function base64Decode(data)
-    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-    data = string.gsub(data, '[^'..b..'=]', '')
-    return (data:gsub('.', function(x)
-        if (x == '=') then return '' end
-        local r,f='',(b:find(x)-1)
-        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
-        return r;
-    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
-        if (#x ~= 8) then return '' end
-        local c=0
-        for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
-        return string.char(c)
-    end))
-end
-
--- Layer 3: Custom Base64 with shuffled alphabet
-local function customBase64Encode(data, alphabet)
-    alphabet = alphabet or 'QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789+/'
-    return ((data:gsub('.', function(x) 
-        local r,b='',x:byte()
-        for i=8,1,-1 do r=r..(b%2^i-b%2^(i-1)>0 and '1' or '0') end
-        return r;
-    end)..'0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
-        if (#x < 6) then return '' end
-        local c=0
-        for i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end
-        return alphabet:sub(c+1,c+1)
-    end)..({ '', '==', '=' })[#data%3+1])
-end
-
-local function customBase64Decode(data, alphabet)
-    alphabet = alphabet or 'QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789+/'
-    data = string.gsub(data, '[^'..alphabet:gsub('[%^%$%(%)%%%.%[%]%*%+%-%?]','%%%1')..'=]', '')
-    return (data:gsub('.', function(x)
-        if (x == '=') then return '' end
-        local r,f='',(alphabet:find(x, 1, true)-1)
-        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
-        return r;
-    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
-        if (#x ~= 8) then return '' end
-        local c=0
-        for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
-        return string.char(c)
-    end))
-end
-
--- Layer 4: ROT13 + Caesar Cipher Hybrid
-local function rot13Caesar(str, shift)
-    shift = shift or 13
-    local result = {}
-    for i = 1, #str do
-        local byte = string.byte(str, i)
-        if byte >= 65 and byte <= 90 then -- A-Z
-            byte = ((byte - 65 + shift) % 26) + 65
-        elseif byte >= 97 and byte <= 122 then -- a-z
-            byte = ((byte - 97 + shift) % 26) + 97
-        elseif byte >= 48 and byte <= 57 then -- 0-9
-            byte = ((byte - 48 + shift) % 10) + 48
-        end
-        table.insert(result, string.char(byte))
-    end
-    return table.concat(result)
-end
-
--- Layer 5: Bit Rotation Obfuscation
-local function bitRotate(str, rotations)
-    local result = {}
-    for i = 1, #str do
-        local byte = string.byte(str, i)
-        byte = bit32.lrotate(byte, rotations)
-        table.insert(result, string.char(byte % 256))
-    end
-    return table.concat(result)
-end
-
-local function bitUnrotate(str, rotations)
-    local result = {}
-    for i = 1, #str do
-        local byte = string.byte(str, i)
-        byte = bit32.rrotate(byte, rotations)
-        table.insert(result, string.char(byte % 256))
-    end
-    return table.concat(result)
-end
-
--- Layer 6: String Reversal with Interleaving
-local function interleaveReverse(str)
-    local len = #str
-    local result = {}
-    local mid = math.floor(len / 2)
-    
-    -- Split and interleave
-    for i = 1, mid do
-        table.insert(result, str:sub(i, i))
-        if len - i + 1 > mid then
-            table.insert(result, str:sub(len - i + 1, len - i + 1))
-        end
-    end
-    if len % 2 == 1 then
-        table.insert(result, str:sub(mid + 1, mid + 1))
-    end
-    
-    return table.concat(result)
-end
-
--- Layer 7: Hex Encoding
-local function hexEncode(str)
-    return (str:gsub('.', function(c)
-        return string.format('%02X', string.byte(c))
-    end))
-end
-
-local function hexDecode(hex)
-    return (hex:gsub('..', function(cc)
-        return string.char(tonumber(cc, 16))
-    end))
-end
-
--- Layer 8: Character Substitution Cipher
-local function charSubstitute(str, forward)
-    local from = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=-"
-    local to   = "ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba9876543210-/=+"
-    
-    if not forward then
-        from, to = to, from
-    end
-    
-    local result = {}
-    for i = 1, #str do
-        local char = str:sub(i, i)
-        local pos = from:find(char, 1, true)
-        if pos then
-            table.insert(result, to:sub(pos, pos))
-        else
-            table.insert(result, char)
-        end
-    end
-    return table.concat(result)
-end
-
--- Simple but ultra-secure 3-layer encryption (more reliable)
-local function ultraEncrypt(data, key1, key2, key3)
-	if not data or data == "" then
-		return ""
-	end
-	
-	-- Combine all keys for stronger single key
-	local masterKey = key1 .. key2 .. key3
-	
-	-- Layer 1: XOR encryption
-	local result = {}
-	for i = 1, #data do
-		local byte = string.byte(data, i)
-		local keyByte = string.byte(masterKey, ((i - 1) % #masterKey) + 1)
-		local encrypted = bit32.bxor(byte, keyByte)
-		table.insert(result, string.char(encrypted))
-	end
-	data = table.concat(result)
-	
-	-- Layer 2: Base64 encoding
-	data = base64Encode(data)
-	
-	-- Layer 3: XOR again with reversed key
-	local reversedKey = masterKey:reverse()
-	result = {}
-	for i = 1, #data do
-		local byte = string.byte(data, i)
-		local keyByte = string.byte(reversedKey, ((i - 1) % #reversedKey) + 1)
-		local encrypted = bit32.bxor(byte, keyByte)
-		table.insert(result, string.char(encrypted))
-	end
-	
-	-- Final Base64
-	return base64Encode(table.concat(result))
-end
-
-local function ultraDecrypt(data, key1, key2, key3)
-	if not data or data == "" then
-		return ""
-	end
-	
-	-- Combine all keys for stronger single key
-	local masterKey = key1 .. key2 .. key3
-	
-	-- Reverse final Base64
-	local success1, decoded = pcall(function()
-		return base64Decode(data)
-	end)
-	if not success1 or not decoded then
-		return nil
-	end
-	data = decoded
-	
-	-- Reverse Layer 3: XOR with reversed key
-	local reversedKey = masterKey:reverse()
-	local result = {}
-	for i = 1, #data do
-		local byte = string.byte(data, i)
-		local keyByte = string.byte(reversedKey, ((i - 1) % #reversedKey) + 1)
-		local decrypted = bit32.bxor(byte, keyByte)
-		table.insert(result, string.char(decrypted))
-	end
-	data = table.concat(result)
-	
-	-- Reverse Layer 2: Base64 decoding
-	local success2, decoded2 = pcall(function()
-		return base64Decode(data)
-	end)
-	if not success2 or not decoded2 then
-		return nil
-	end
-	data = decoded2
-	
-	-- Reverse Layer 1: XOR decryption
-	result = {}
-	for i = 1, #data do
-		local byte = string.byte(data, i)
-		local keyByte = string.byte(masterKey, ((i - 1) % #masterKey) + 1)
-		local decrypted = bit32.bxor(byte, keyByte)
-		table.insert(result, string.char(decrypted))
-	end
-	
-	return table.concat(result)
-end
-
--- ═══════════════════════════════════════════════════════════════════════════
--- HYPER-ENCRYPTED WEBHOOK STORAGE (11+ LAYERS OF PROTECTION)
--- ═══════════════════════════════════════════════════════════════════════════
-
--- Multiple encryption keys for maximum security
-local ENCRYPTION_KEY_ALPHA = "HydraSecureKey2026_V3_Advanced_Alpha_Protocol"
-local ENCRYPTION_KEY_BETA = "XenoProtection_Layer2_Security_Beta_Cipher"
-local ENCRYPTION_KEY_GAMMA = "OmegaShield_UltraSecure_Gamma_Encryption_2026"
-local ENCRYPTION_KEY_DELTA = "QuantumLock_Advanced_Delta_Protection_System"
-local ENCRYPTION_KEY_EPSILON = "NexusGuard_Maximum_Epsilon_Security_Layer"
-
--- Legacy compatibility key (for old encryption functions)
-local ENCRYPTION_KEY = "HydraSecureKey2026_V3_Advanced"
-
--- Webhook split into 6 parts with ultra encryption
-local ENCRYPTED_WEBHOOK_PART1 = ultraEncrypt("https://discord.com/", ENCRYPTION_KEY_ALPHA, ENCRYPTION_KEY_BETA, ENCRYPTION_KEY_GAMMA)
-local ENCRYPTED_WEBHOOK_PART2 = ultraEncrypt("api/webhooks/", ENCRYPTION_KEY_BETA, ENCRYPTION_KEY_GAMMA, ENCRYPTION_KEY_DELTA)
-local ENCRYPTED_WEBHOOK_PART3 = ultraEncrypt("1466546211", ENCRYPTION_KEY_GAMMA, ENCRYPTION_KEY_DELTA, ENCRYPTION_KEY_EPSILON)
-local ENCRYPTED_WEBHOOK_PART4 = ultraEncrypt("820667033/", ENCRYPTION_KEY_DELTA, ENCRYPTION_KEY_EPSILON, ENCRYPTION_KEY_ALPHA)
-local ENCRYPTED_WEBHOOK_PART5 = ultraEncrypt("7iQKri9ioEpSG5ZyjxQMCjYpAGEpZuwoM98N-0-bbzzS", ENCRYPTION_KEY_EPSILON, ENCRYPTION_KEY_ALPHA, ENCRYPTION_KEY_BETA)
-local ENCRYPTED_WEBHOOK_PART6 = ultraEncrypt("cfO0D3hEjuHtU-OHotof-CnL", ENCRYPTION_KEY_ALPHA, ENCRYPTION_KEY_BETA, ENCRYPTION_KEY_GAMMA)
-
--- Hyper-Secure Webhook Decryption Function (11-Layer Decryption)
-function SecurityCore:DecryptWebhook()
-    local part1 = ultraDecrypt(ENCRYPTED_WEBHOOK_PART1, ENCRYPTION_KEY_ALPHA, ENCRYPTION_KEY_BETA, ENCRYPTION_KEY_GAMMA)
-    local part2 = ultraDecrypt(ENCRYPTED_WEBHOOK_PART2, ENCRYPTION_KEY_BETA, ENCRYPTION_KEY_GAMMA, ENCRYPTION_KEY_DELTA)
-    local part3 = ultraDecrypt(ENCRYPTED_WEBHOOK_PART3, ENCRYPTION_KEY_GAMMA, ENCRYPTION_KEY_DELTA, ENCRYPTION_KEY_EPSILON)
-    local part4 = ultraDecrypt(ENCRYPTED_WEBHOOK_PART4, ENCRYPTION_KEY_DELTA, ENCRYPTION_KEY_EPSILON, ENCRYPTION_KEY_ALPHA)
-    local part5 = ultraDecrypt(ENCRYPTED_WEBHOOK_PART5, ENCRYPTION_KEY_EPSILON, ENCRYPTION_KEY_ALPHA, ENCRYPTION_KEY_BETA)
-    local part6 = ultraDecrypt(ENCRYPTED_WEBHOOK_PART6, ENCRYPTION_KEY_ALPHA, ENCRYPTION_KEY_BETA, ENCRYPTION_KEY_GAMMA)
-    
-    return part1 .. part2 .. part3 .. part4 .. part5 .. part6
-end
-
--- ═══════════════════════════════════════════════════════════════════════════
--- ANTI-DEBUGGING & ANTI-TAMPERING
--- ═══════════════════════════════════════════════════════════════════════════
-
-function SecurityCore:AntiDebug()
-    -- Check for common exploit environments
-    local blockedEnvs = {
-        "getgenv", "getrenv", "getsenv", "getrawmetatable", "setrawmetatable",
-        "hookfunction", "hookmetamethod", "newcclosure", "checkcaller",
-        "islclosure", "getinfo", "debug", "getupvalue", "setupvalue",
-        "getcallingscript", "getscriptclosure", "decompile", "saveinstance"
-    }
-    
-    for _, func in pairs(blockedEnvs) do
-        if _G[func] or getfenv()[func] then
-            -- Silent fail - don't reveal detection
-            game:GetService("Players").LocalPlayer:Kick("Verification failed [0x0001]")
-            return false
-        end
-    end
-    
-    return true
-end
-
-function SecurityCore:CheckIntegrity()
-    -- Verify script hasn't been modified
-    local checksum = 0
-    local scriptContent = debug.info(1, "s")
-    
-    -- Simple checksum validation
-    for i = 1, #scriptContent do
-        checksum = (checksum + string.byte(scriptContent, i)) % 999999
-    end
-    
-    -- Store expected checksum (would be pre-calculated)
-    local expectedChecksum = 123456 -- This would be real value
-    
-    -- Don't reveal exact check
-    if checksum ~= expectedChecksum then
-        -- Silent integrity failure
-        return true -- Continue but log
-    end
-    
-    return true
-end
-
-function SecurityCore:EnvironmentCheck()
-    -- Check for suspicious game modifications
-    local HttpService = game:GetService("HttpService")
-    local Players = game:GetService("Players")
-    
-    -- Verify services exist and aren't hooked
-    if not HttpService or not Players then
-        return false
-    end
-    
-    -- Check for common exploit identifiers
-    if identifyexecutor or getexecutorname or KRNL_LOADED or SYNAPSE_LOADED then
-        -- Continue but mark as suspicious
-        return true
-    end
-    
-    return true
-end
-
--- ═══════════════════════════════════════════════════════════════════════════
--- ADVANCED RATE LIMITING
--- ═══════════════════════════════════════════════════════════════════════════
-
-local RateLimiter = {
-    requests = {},
-    maxRequests = 10,
-    timeWindow = 60,
-    blocked = {}
-}
-
-function RateLimiter:Check(userId)
-    local now = tick()
-    
-    -- Check if blocked
-    if self.blocked[userId] then
-        if now - self.blocked[userId] < 300 then -- 5 min block
-            return false, "Rate limit exceeded. Try again later."
-        else
-            self.blocked[userId] = nil
-        end
-    end
-    
-    -- Initialize user requests
-    if not self.requests[userId] then
-        self.requests[userId] = {}
-    end
-    
-    -- Clean old requests
-    local validRequests = {}
-    for _, timestamp in pairs(self.requests[userId]) do
-        if now - timestamp < self.timeWindow then
-            table.insert(validRequests, timestamp)
-        end
-    end
-    self.requests[userId] = validRequests
-    
-    -- Check limit
-    if #self.requests[userId] >= self.maxRequests then
-        self.blocked[userId] = now
-        return false, "Too many requests. You have been temporarily blocked."
-    end
-    
-    -- Add new request
-    table.insert(self.requests[userId], now)
-    return true
-end
-
--- ═══════════════════════════════════════════════════════════════════════════
--- SECURE HTTP REQUEST SYSTEM
--- ═══════════════════════════════════════════════════════════════════════════
-
-function SecurityCore:SecureHttpPost(data)
-    local HttpService = game:GetService("HttpService")
-    
-    -- Get decrypted webhook
-    local webhook = self:DecryptWebhook()
-    
-    -- Simple payload without extra signatures that might cause issues
-    local payload = {
-        content = data.content or "",
-        embeds = data.embeds or {}
-    }
-    
-    -- Send with retry logic
-    local maxRetries = 3
-    local retryDelay = 1
-    
-    for attempt = 1, maxRetries do
-        local success, response = pcall(function()
-            return HttpService:PostAsync(
-                webhook,
-                HttpService:JSONEncode(payload),
-                Enum.HttpContentType.ApplicationJson,
-                false
-            )
-        end)
-        
-        if success then
-            return true, response
-        else
-
-            if attempt < maxRetries then
-                task.wait(retryDelay * attempt)
-            end
-        end
-    end
-    
-    return false, "Request failed after retries"
-end
-
-function SecurityCore:GenerateSignature(content, timestamp, nonce)
-    -- Simple signature generation (would use HMAC in production)
-    local combined = tostring(content or "") .. tostring(timestamp or "") .. tostring(nonce or "") .. ENCRYPTION_KEY
-    local hash = 0
-    for i = 1, #combined do
-        hash = ((hash * 31) + string.byte(combined, i)) % 2^32
-    end
-    return tostring(hash)
-end
-
--- ═══════════════════════════════════════════════════════════════════════════
--- INPUT VALIDATION & SANITIZATION
--- ═══════════════════════════════════════════════════════════════════════════
-
-function SecurityCore:ValidateKey(key)
-    if not key or type(key) ~= "string" then
-        return false, "Invalid key format"
-    end
-    
-    -- Length check
-    if #key < 10 or #key > 100 then
-        return false, "Invalid key length"
-    end
-    
-    -- Character validation (alphanumeric, dash, underscore only)
-    if not string.match(key, "^[A-Za-z0-9_-]+$") then
-        return false, "Invalid characters in key"
-    end
-    
-    -- Check for suspicious patterns
-    local suspiciousPatterns = {
-        "script", "lua", "print", "warn", "game", "loadstring",
-        "require", "module", "http", "webhook", "discord"
-    }
-    
-    local lowerKey = string.lower(key)
-    for _, pattern in pairs(suspiciousPatterns) do
-        if string.find(lowerKey, pattern) then
-            return false, "Suspicious key pattern detected"
-        end
-    end
-    
-    return true
-end
-
-function SecurityCore:SanitizeInput(input)
-    if type(input) ~= "string" then
-        return ""
-    end
-    
-    -- Remove potentially dangerous characters
-    input = string.gsub(input, "[<>\"'\\]", "")
-    input = string.gsub(input, "%s+", " ") -- Normalize whitespace
-    input = string.sub(input, 1, 500) -- Limit length
-    
-    return input
-end
-
--- ═══════════════════════════════════════════════════════════════════════════
--- HWID GENERATION & VALIDATION
--- ═══════════════════════════════════════════════════════════════════════════
-
-function SecurityCore:GenerateHWID()
-    local HttpService = game:GetService("HttpService")
-    local Players = game:GetService("Players")
-    local player = Players.LocalPlayer
-    
-    -- Collect device fingerprint data
-    local components = {
-        tostring(game.JobId),
-        tostring(player.UserId),
-        tostring(game.PlaceId),
-        game:GetService("UserInputService"):GetPlatform().Name,
-        tostring(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()),
-        HttpService:GenerateGUID(false)
-    }
-    
-    -- Create hash
-    local combined = table.concat(components, "|")
-    local hash = 0
-    for i = 1, #combined do
-        hash = ((hash * 31) + string.byte(combined, i)) % 2^32
-    end
-    
-    return tostring(hash)
-end
-
--- ═══════════════════════════════════════════════════════════════════════════
--- VERIFICATION URL ENCRYPTION
--- ═══════════════════════════════════════════════════════════════════════════
-
-local ENCRYPTED_VERIFY_URL = base64Encode(xorEncrypt(
-    "https://61e5b740-506e-4d91-b132-6eba1d7bef9c-00-2h30njchyh5lj.picard.replit.dev/validate",
-    ENCRYPTION_KEY
-))
-
-function SecurityCore:GetVerificationURL()
-    return xorEncrypt(base64Decode(ENCRYPTED_VERIFY_URL), ENCRYPTION_KEY)
-end
-
--- ═══════════════════════════════════════════════════════════════════════════
--- GAME SCRIPTS DATABASE (Encrypted)
--- ═══════════════════════════════════════════════════════════════════════════
-
-local ENCRYPTED_SCRIPTS = {}
-
--- Encrypt script URLs
-local function EncryptScriptData(placeId, url)
-    ENCRYPTED_SCRIPTS[tostring(placeId)] = base64Encode(xorEncrypt(url, ENCRYPTION_KEY .. tostring(placeId)))
-end
-
--- Game script URLs (encrypted at runtime)
-EncryptScriptData(11630038968, "https://raw.githubusercontent.com/XenoTheDev/Hydra/main/Hydra%20Blind%20Shot.LUAU")
-EncryptScriptData(1962086868, "https://raw.githubusercontent.com/XenoTheDev/Hydra/main/HydraFF2")
-EncryptScriptData(17458505263, "https://raw.githubusercontent.com/XenoTheDev/Hydra/main/Hydra%20Hiders%20vs%20Seekers.luau")
-EncryptScriptData(11854026869, "https://raw.githubusercontent.com/XenoTheDev/Hydra/main/Hydra%20Basketball.luau")
-EncryptScriptData(13916860657, "https://raw.githubusercontent.com/XenoTheDev/Hydra/main/Hatch%20A%20Brainrot.luau")
-EncryptScriptData(15507137030, "https://raw.githubusercontent.com/XenoTheDev/Hydra/main/Hydra%20Solo%20Hunter.LUAU")
-
-function SecurityCore:GetScriptURL(placeId)
-    local encrypted = ENCRYPTED_SCRIPTS[tostring(placeId)]
-    if not encrypted then
-        return nil
-    end
-    return xorEncrypt(base64Decode(encrypted), ENCRYPTION_KEY .. tostring(placeId))
-end
-
--- ═══════════════════════════════════════════════════════════════════════════
--- ANTI-VM DETECTION
--- ═══════════════════════════════════════════════════════════════════════════
-
-function SecurityCore:DetectVM()
-    local suspiciousIndicators = 0
-    
-    -- Check for unrealistic ping
-    local ping = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()
-    if ping < 1 or ping > 1000 then
-        suspiciousIndicators = suspiciousIndicators + 1
-    end
-    
-    -- Check for missing user input service
-    local success = pcall(function()
-        game:GetService("UserInputService"):GetLastInputType()
-    end)
-    if not success then
-        suspiciousIndicators = suspiciousIndicators + 1
-    end
-    
-    -- Check player count
-    if #game:GetService("Players"):GetPlayers() < 1 then
-        suspiciousIndicators = suspiciousIndicators + 1
-    end
-    
-    return suspiciousIndicators < 2
-end
-
--- ═══════════════════════════════════════════════════════════════════════════
--- SECURE LOGGER
--- ═══════════════════════════════════════════════════════════════════════════
-
-function SecurityCore:SecureLog(action, data)
-    local success, result = pcall(function()
-        local Players = game:GetService("Players")
-        local player = Players.LocalPlayer
-        
-        -- Rate limit check
-        local canSend, errorMsg = RateLimiter:Check(player.UserId)
-        if not canSend then
-
-            return
-        end
-        
-        local embed = {
-            {
-                title = "🔐 " .. action,
-                color = action:find("Success") and 5763719 or action:find("Failed") and 15548997 or 5793266,
-                fields = {},
-                footer = {
-                    text = "Hydra Security System | " .. os.date("%Y-%m-%d %H:%M:%S")
-                },
-                timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
-            }
-        }
-        
-        -- Add fields from data
-        for key, value in pairs(data) do
-            table.insert(embed[1].fields, {
-                name = key,
-                value = tostring(value),
-                inline = true
-            })
-        end
-        
-        -- Send secured request
-        self:SecureHttpPost({
-            content = "",
-            embeds = embed
-        })
-    end)
-    
-    if not success then
-
-    end
-end
-
--- ═══════════════════════════════════════════════════════════════════════════
--- INITIALIZATION & RUNTIME PROTECTION
--- ═══════════════════════════════════════════════════════════════════════════
-
-function SecurityCore:Initialize()
-    -- Run security checks
-    if not self:AntiDebug() then
-        return false, "Security check failed [0x0001]"
-    end
-    
-    if not self:EnvironmentCheck() then
-        return false, "Environment check failed [0x0002]"
-    end
-    
-    if not self:CheckIntegrity() then
-        return false, "Integrity check failed [0x0003]"
-    end
-    
-    if not self:DetectVM() then
-        return false, "VM detection failed [0x0004]"
-    end
-    
-    -- All checks passed
-    return true
-end
-
--- ═══════════════════════════════════════════════════════════════════════════
--- HYDRA LOADER V2 - MAIN LOADER CODE
--- Ultra-modern loading screen with advanced animations
--- ═══════════════════════════════════════════════════════════════════════════
-
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 
--- Key System Configuration
 local VERIFICATION_URL = "https://61e5b740-506e-4d91-b132-6eba1d7bef9c-00-2h30njchyh5lj.picard.replit.dev/validate"
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 
--- Create Key System ScreenGui
 local keySystemGui = Instance.new("ScreenGui")
 keySystemGui.Name = "HydraKeySystem"
 keySystemGui.ResetOnSpawn = false
@@ -713,7 +14,6 @@ keySystemGui.DisplayOrder = 1000
 keySystemGui.IgnoreGuiInset = true
 keySystemGui.Parent = game.CoreGui
 
--- Key System Background
 local keyBackground = Instance.new("Frame")
 keyBackground.Name = "Background"
 keyBackground.Size = UDim2.new(1, 0, 1, 0)
@@ -722,7 +22,6 @@ keyBackground.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
 keyBackground.BorderSizePixel = 0
 keyBackground.Parent = keySystemGui
 
--- Animated mesh background pattern
 local keyMeshPattern = Instance.new("Frame")
 keyMeshPattern.Name = "MeshPattern"
 keyMeshPattern.Size = UDim2.new(1, 0, 1, 0)
@@ -740,7 +39,6 @@ keyMeshGradient.Color = ColorSequence.new{
 keyMeshGradient.Rotation = 45
 keyMeshGradient.Parent = keyMeshPattern
 
--- Animate mesh pattern
 task.spawn(function()
 	local offset = 0
 	while keySystemGui.Parent do
@@ -750,7 +48,6 @@ task.spawn(function()
 	end
 end)
 
--- Scanline overlay effect
 local keyScanlines = Instance.new("Frame")
 keyScanlines.Name = "Scanlines"
 keyScanlines.Size = UDim2.new(1, 0, 1, 0)
@@ -776,7 +73,6 @@ keyScanlineGradient.Transparency = NumberSequence.new{
 keyScanlineGradient.Rotation = 90
 keyScanlineGradient.Parent = keyScanlines
 
--- Animate scanlines
 task.spawn(function()
 	while keySystemGui.Parent do
 		for i = 0, 180 do
@@ -787,7 +83,6 @@ task.spawn(function()
 	end
 end)
 
--- Background floating squares for key system
 for i = 1, 80 do
 	local bgSquare = Instance.new("Frame")
 	bgSquare.Size = UDim2.new(0, math.random(30, 100), 0, math.random(30, 100))
@@ -799,7 +94,6 @@ for i = 1, 80 do
 	bgSquare.ZIndex = 2
 	bgSquare.Parent = keyBackground
 	
-	-- Add glow effect to squares
 	local squareGlow = Instance.new("UIStroke")
 	squareGlow.Color = Color3.fromRGB(100, 255, 100)
 	squareGlow.Thickness = 2
@@ -816,7 +110,6 @@ for i = 1, 80 do
 	bgSquareStroke.Transparency = 0.9
 	bgSquareStroke.Parent = bgSquare
 	
-	-- Floating animation
 	task.spawn(function()
 		while keySystemGui.Parent do
 			local randomX = math.random(0, 100) / 100
@@ -829,7 +122,6 @@ for i = 1, 80 do
 		end
 	end)
 	
-	-- Rotation
 	task.spawn(function()
 		local rotSpeed = math.random(2, 8) / 10 * (math.random(0, 1) == 0 and 1 or -1)
 		while keySystemGui.Parent do
@@ -839,7 +131,6 @@ for i = 1, 80 do
 	end)
 end
 
--- Key System Container Shadows
 local keyShadow3 = Instance.new("Frame")
 keyShadow3.Size = UDim2.new(0, 530, 0, 390)
 keyShadow3.Position = UDim2.new(0.5, 10, 0.5, 10)
@@ -882,7 +173,6 @@ local keyShadow1Corner = Instance.new("UICorner")
 keyShadow1Corner.CornerRadius = UDim.new(0, 20)
 keyShadow1Corner.Parent = keyShadow1
 
--- Key System Container
 local keyContainer = Instance.new("Frame")
 keyContainer.Name = "KeyContainer"
 keyContainer.Size = UDim2.new(0, 500, 0, 360)
@@ -898,7 +188,6 @@ local keyContainerCorner = Instance.new("UICorner")
 keyContainerCorner.CornerRadius = UDim.new(0, 20)
 keyContainerCorner.Parent = keyContainer
 
--- Glass overlay
 local keyGlassOverlay = Instance.new("Frame")
 keyGlassOverlay.Size = UDim2.new(1, 0, 0.5, 0)
 keyGlassOverlay.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -936,7 +225,6 @@ local keyBorder2Corner = Instance.new("UICorner")
 keyBorder2Corner.CornerRadius = UDim.new(0, 22)
 keyBorder2Corner.Parent = keyBorderGlow2
 
--- Advanced particle system around container
 for i = 1, 15 do
 	local particle = Instance.new("Frame")
 	particle.Size = UDim2.new(0, math.random(3, 8), 0, math.random(3, 8))
@@ -950,7 +238,6 @@ for i = 1, 15 do
 	particleCorner.CornerRadius = UDim.new(1, 0)
 	particleCorner.Parent = particle
 	
-	-- Orbit animation around container edges
 	task.spawn(function()
 		local angle = (i / 15) * 360
 		while keySystemGui.Parent do
@@ -961,7 +248,6 @@ for i = 1, 15 do
 			local y = 0.5 + math.sin(rad) * radius
 			particle.Position = UDim2.new(x, 0, y, 0)
 			
-			-- Pulse effect
 			local pulseSize = 4 + math.sin(angle / 10) * 3
 			particle.Size = UDim2.new(0, pulseSize, 0, pulseSize)
 			particle.BackgroundTransparency = 0.3 + math.abs(math.sin(angle / 20)) * 0.5
@@ -971,7 +257,6 @@ for i = 1, 15 do
 	end)
 end
 
--- Hexagon pattern background in container
 for i = 1, 20 do
 	local hex = Instance.new("Frame")
 	hex.Size = UDim2.new(0, math.random(30, 60), 0, math.random(30, 60))
@@ -994,7 +279,6 @@ for i = 1, 20 do
 	
 	hex.Position = UDim2.new(math.random(-10, 110) / 100, 0, math.random(-10, 110) / 100, 0)
 	
-	-- Float animation
 	task.spawn(function()
 		while keySystemGui.Parent do
 			local randomX = math.random(-10, 110) / 100
@@ -1007,7 +291,6 @@ for i = 1, 20 do
 		end
 	end)
 	
-	-- Rotation
 	task.spawn(function()
 		local rotSpeed = math.random(2, 6) / 10 * (math.random(0, 1) == 0 and 1 or -1)
 		while keySystemGui.Parent do
@@ -1017,7 +300,6 @@ for i = 1, 20 do
 	end)
 end
 
--- Title
 local keyTitle = Instance.new("TextLabel")
 keyTitle.Size = UDim2.new(1, 0, 0, 55)
 keyTitle.Position = UDim2.new(0, 0, 0.04, 0)
@@ -1039,7 +321,6 @@ keyTitleGradient.Color = ColorSequence.new{
 }
 keyTitleGradient.Parent = keyTitle
 
--- Animate title gradient
 task.spawn(function()
 	while keySystemGui.Parent do
 		for i = 0, 360, 2 do
@@ -1050,7 +331,6 @@ task.spawn(function()
 	end
 end)
 
--- Subtitle
 local keySubtitle = Instance.new("TextLabel")
 keySubtitle.Size = UDim2.new(1, 0, 0, 22)
 keySubtitle.Position = UDim2.new(0, 0, 0.195, 0)
@@ -1063,7 +343,6 @@ keySubtitle.TextTransparency = 0.3
 keySubtitle.ZIndex = 12
 keySubtitle.Parent = keyContainer
 
--- Key Input Box (Repositioned)
 local keyInputBox = Instance.new("TextBox")
 keyInputBox.Size = UDim2.new(0.75, 0, 0, 45)
 keyInputBox.Position = UDim2.new(0.5, 0, 0.42, 0)
@@ -1086,7 +365,6 @@ local keyInputCorner = Instance.new("UICorner")
 keyInputCorner.CornerRadius = UDim.new(0, 10)
 keyInputCorner.Parent = keyInputBox
 
--- Typing indicator for input box
 local typingIndicator = Instance.new("TextLabel")
 typingIndicator.Size = UDim2.new(0, 40, 0, 20)
 typingIndicator.Position = UDim2.new(1, -50, 0.5, 0)
@@ -1099,7 +377,6 @@ typingIndicator.Font = Enum.Font.GothamBold
 typingIndicator.ZIndex = 13
 typingIndicator.Parent = keyInputBox
 
--- Animate typing indicator
 keyInputBox:GetPropertyChangedSignal("Text"):Connect(function()
 	if #keyInputBox.Text > 0 then
 		task.spawn(function()
@@ -1112,7 +389,6 @@ keyInputBox:GetPropertyChangedSignal("Text"):Connect(function()
 	end
 end)
 
--- Advanced glow layer for input
 local inputGlow = Instance.new("Frame")
 inputGlow.Size = UDim2.new(1, 10, 1, 10)
 inputGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -1127,7 +403,6 @@ local inputGlowCorner = Instance.new("UICorner")
 inputGlowCorner.CornerRadius = UDim.new(0, 12)
 inputGlowCorner.Parent = inputGlow
 
--- Input box focus effects with advanced animations
 keyInputBox.Focused:Connect(function()
 	TweenService:Create(keyInputBox, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 		Size = UDim2.new(0.78, 0, 0, 47)
@@ -1148,7 +423,6 @@ keyInputBox.FocusLost:Connect(function()
 	}):Play()
 end)
 
--- Get Key Button (Repositioned)
 local getKeyButton = Instance.new("TextButton")
 getKeyButton.Size = UDim2.new(0.75, 0, 0, 42)
 getKeyButton.Position = UDim2.new(0.5, 0, 0.78, 0)
@@ -1172,7 +446,6 @@ getKeyButtonStroke.Thickness = 2
 getKeyButtonStroke.Transparency = 0.5
 getKeyButtonStroke.Parent = getKeyButton
 
--- Advanced glow for GET KEY button
 local getKeyGlow = Instance.new("Frame")
 getKeyGlow.Size = UDim2.new(1, 0, 1, 0)
 getKeyGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -1187,7 +460,6 @@ local getKeyGlowCorner = Instance.new("UICorner")
 getKeyGlowCorner.CornerRadius = UDim.new(0, 10)
 getKeyGlowCorner.Parent = getKeyGlow
 
--- Get Key Button effects with advanced animations
 getKeyButton.MouseEnter:Connect(function()
 	TweenService:Create(getKeyButton, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 		BackgroundColor3 = Color3.fromRGB(30, 35, 40),
@@ -1218,7 +490,6 @@ getKeyButton.MouseLeave:Connect(function()
 	}):Play()
 end)
 
--- Add loading bar to GET KEY button
 local loadingBar = Instance.new("Frame")
 loadingBar.Size = UDim2.new(0, 0, 0, 3)
 loadingBar.Position = UDim2.new(0, 0, 1, -3)
@@ -1232,102 +503,26 @@ loadingBarCorner.CornerRadius = UDim.new(1, 0)
 loadingBarCorner.Parent = loadingBar
 
 getKeyButton.MouseButton1Click:Connect(function()
-	-- Discord invite link
-	local discordUrl = "https://discord.gg/vPnamBTWzU"
+	setclipboard("https://discord.gg/rQcGZc9W")
 	
-	-- Method 1: Most common - openbrowser function (Script-Ware, KRNL, Fluxus, etc.)
-	local success1 = pcall(function()
-		if openbrowser then
-			openbrowser(discordUrl)
-			return true
-		end
-	end)
-	
-	-- Method 2: Synapse X specific
-	local success2 = pcall(function()
-		if syn and syn.request then
-			syn.request({
-				Url = discordUrl,
-				Method = "GET",
-				Headers = {
-					["User-Agent"] = "Mozilla/5.0"
-				}
-			})
-			return true
-		end
-	end)
-	
-	-- Method 3: Alternative openbrowser naming
-	local success3 = pcall(function()
-		if browser then
-			browser(discordUrl)
-			return true
-		end
-	end)
-	
-	-- Method 4: open_browser variation
-	local success4 = pcall(function()
-		if open_browser then
-			open_browser(discordUrl)
-			return true
-		end
-	end)
-	
-	-- Method 5: request function (http_request)
-	local success5 = pcall(function()
-		if request then
-			request({
-				Url = discordUrl,
-				Method = "GET"
-			})
-			return true
-		end
-	end)
-	
-	-- Method 6: http_request
-	local success6 = pcall(function()
-		if http_request then
-			http_request({
-				Url = discordUrl,
-				Method = "GET"
-			})
-			return true
-		end
-	end)
-	
-	-- Method 7: HttpGet redirect
-	local success7 = pcall(function()
-		game:HttpGet(discordUrl)
-	end)
-	
-	-- Method 8: Roblox's Browser Window (if available)
-	local success8 = pcall(function()
-		if game.OpenBrowserWindow then
-			game:OpenBrowserWindow(discordUrl)
-			return true
-		end
-	end)
-	
-	-- Method 9: Clipboard fallback
 	pcall(function()
-		if setclipboard then
-			setclipboard(discordUrl)
-		end
+		request({
+			Url = "https://discord.gg/rQcGZc9W",
+			Method = "GET"
+		})
 	end)
 	
-	-- Button feedback animation with loading bar
 	getKeyButton.Text = "OPENING..."
 	TweenService:Create(getKeyButton, TweenInfo.new(0.2, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
 		BackgroundColor3 = Color3.fromRGB(50, 200, 50)
 	}):Play()
 	
-	-- Animate loading bar
 	TweenService:Create(loadingBar, TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 		Size = UDim2.new(1, 0, 0, 3)
 	}):Play()
 	
 	task.wait(1)
-	getKeyButton.Text = "✓ LINK COPIED!"
+	getKeyButton.Text = "LINK COPIED"
 	task.wait(1.5)
 	
 	TweenService:Create(getKeyButton, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
@@ -1339,7 +534,6 @@ getKeyButton.MouseButton1Click:Connect(function()
 	getKeyButton.Text = "GET KEY"
 end)
 
--- Submit Button (Clean modern design)
 local submitButton = Instance.new("TextButton")
 submitButton.Size = UDim2.new(0.75, 0, 0, 45)
 submitButton.Position = UDim2.new(0.5, 0, 0.60, 0)
@@ -1357,7 +551,6 @@ local submitButtonCorner = Instance.new("UICorner")
 submitButtonCorner.CornerRadius = UDim.new(0, 12)
 submitButtonCorner.Parent = submitButton
 
--- Submit button hover effect with modern animations
 submitButton.MouseEnter:Connect(function()
 	TweenService:Create(submitButton, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
 		BackgroundColor3 = Color3.fromRGB(150, 255, 150),
@@ -1374,7 +567,6 @@ submitButton.MouseLeave:Connect(function()
 	}):Play()
 end)
 
--- Add chevron icon to submit button
 local submitIcon = Instance.new("TextLabel")
 submitIcon.Size = UDim2.new(0, 20, 0, 20)
 submitIcon.Position = UDim2.new(1, -30, 0.5, 0)
@@ -1387,7 +579,6 @@ submitIcon.Font = Enum.Font.GothamBold
 submitIcon.ZIndex = 13
 submitIcon.Parent = submitButton
 
--- Animate icon
 task.spawn(function()
 	while keySystemGui.Parent do
 		TweenService:Create(submitIcon, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {
@@ -1401,7 +592,6 @@ task.spawn(function()
 	end
 end)
 
--- Status Text
 local keyStatusText = Instance.new("TextLabel")
 keyStatusText.Size = UDim2.new(1, 0, 0, 25)
 keyStatusText.Position = UDim2.new(0, 0, 0.92, 0)
@@ -1413,68 +603,6 @@ keyStatusText.Font = Enum.Font.GothamMedium
 keyStatusText.ZIndex = 12
 keyStatusText.Parent = keyContainer
 
--- Forget Saved Key Button (Small, subtle button)
-local forgetKeyButton = Instance.new("TextButton")
-forgetKeyButton.Size = UDim2.new(0.4, 0, 0, 30)
-forgetKeyButton.Position = UDim2.new(0.5, 0, 0.75, 0)
-forgetKeyButton.AnchorPoint = Vector2.new(0.5, 0.5)
-forgetKeyButton.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
-forgetKeyButton.BackgroundTransparency = 0.5
-forgetKeyButton.BorderSizePixel = 0
-forgetKeyButton.Text = "Forget Saved Key"
-forgetKeyButton.TextColor3 = Color3.fromRGB(200, 200, 200)
-forgetKeyButton.TextSize = 12
-forgetKeyButton.Font = Enum.Font.Gotham
-forgetKeyButton.ZIndex = 12
-forgetKeyButton.Visible = false
-forgetKeyButton.Parent = keyContainer
-
-local forgetKeyCorner = Instance.new("UICorner")
-forgetKeyCorner.CornerRadius = UDim.new(0, 8)
-forgetKeyCorner.Parent = forgetKeyButton
-
-local forgetKeyStroke = Instance.new("UIStroke")
-forgetKeyStroke.Color = Color3.fromRGB(255, 100, 100)
-forgetKeyStroke.Thickness = 1
-forgetKeyStroke.Transparency = 0.7
-forgetKeyStroke.Parent = forgetKeyButton
-
--- Forget key button hover
-forgetKeyButton.MouseEnter:Connect(function()
-	TweenService:Create(forgetKeyButton, TweenInfo.new(0.2), {
-		BackgroundTransparency = 0.2,
-		TextColor3 = Color3.fromRGB(255, 100, 100)
-	}):Play()
-	TweenService:Create(forgetKeyStroke, TweenInfo.new(0.2), {
-		Transparency = 0.3
-	}):Play()
-end)
-
-forgetKeyButton.MouseLeave:Connect(function()
-	TweenService:Create(forgetKeyButton, TweenInfo.new(0.2), {
-		BackgroundTransparency = 0.5,
-		TextColor3 = Color3.fromRGB(200, 200, 200)
-	}):Play()
-	TweenService:Create(forgetKeyStroke, TweenInfo.new(0.2), {
-		Transparency = 0.7
-	}):Play()
-end)
-
--- Forget key button click
-forgetKeyButton.MouseButton1Click:Connect(function()
-	local deleteSuccess = deleteKey()
-	if deleteSuccess then
-		forgetKeyButton.Visible = false
-		keyInputBox.Text = ""
-		keyStatusText.Text = "Saved key deleted - enter new key"
-		keyStatusText.TextColor3 = Color3.fromRGB(255, 200, 100)
-	else
-		keyStatusText.Text = "Failed to delete saved key"
-		keyStatusText.TextColor3 = Color3.fromRGB(255, 100, 100)
-	end
-end)
-
--- Pulse border animation
 task.spawn(function()
 	while keySystemGui.Parent do
 		TweenService:Create(keyBorderGlow, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
@@ -1496,14 +624,12 @@ task.spawn(function()
 	end
 end)
 
--- Advanced Entrance Animation with wave effect
 keyContainer.Size = UDim2.new(0, 0, 0, 0)
 keyContainer.Rotation = -90
 keyShadow1.Size = UDim2.new(0, 0, 0, 0)
 keyShadow2.Size = UDim2.new(0, 0, 0, 0)
 keyShadow3.Size = UDim2.new(0, 0, 0, 0)
 
--- Hide all content initially
 for _, child in pairs(keyContainer:GetChildren()) do
 	if child:IsA("TextLabel") then
 		child.TextTransparency = 1
@@ -1538,24 +664,20 @@ keyEntranceTween3:Play()
 task.wait(0.05)
 keyEntranceTween4:Play()
 
--- Wave animation for content reveal
 task.wait(0.6)
 
--- Fade in title
 TweenService:Create(keyTitle, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 	TextTransparency = 0
 }):Play()
 
 task.wait(0.1)
 
--- Fade in subtitle
 TweenService:Create(keySubtitle, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 	TextTransparency = 0.3
 }):Play()
 
 task.wait(0.15)
 
--- Fade in input box
 TweenService:Create(keyInputBox, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 	BackgroundTransparency = 0,
 	TextTransparency = 0
@@ -1568,7 +690,6 @@ end
 
 task.wait(0.1)
 
--- Fade in GET KEY button
 TweenService:Create(getKeyButton, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 	BackgroundTransparency = 0,
 	TextTransparency = 0
@@ -1581,285 +702,15 @@ end
 
 task.wait(0.1)
 
--- Fade in submit button
 TweenService:Create(submitButton, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 	BackgroundTransparency = 0,
 	TextTransparency = 0
 }):Play()
 
--- Key Validation Function
--- ═══════════════════════════════════════════════════════════════════════════
--- ULTRA-SECURE KEY STORAGE SYSTEM V4.0
--- ═══════════════════════════════════════════════════════════════════════════
-
-local STORAGE_KEY_1 = "HydraVault_Omega_Protocol_2026_Alpha_Shield"
-local STORAGE_KEY_2 = "QuantumLock_SecureKey_Beta_Encryption_Layer"
-local STORAGE_KEY_3 = "DiamondProtection_Gamma_SecureStorage_Final"
-local STORAGE_FILE = "hydra_quantum_vault_v4.hkey"
-
--- Get system HWID (ultra reliable)
-local function getSystemHWID()
-	local hwid
+local function validateKey()
+	local enteredKey = keyInputBox.Text
 	
-	-- Try all executor HWID functions
-	if gethwid then
-		hwid = gethwid()
-	elseif get_hwid then
-		hwid = get_hwid()
-	elseif GetHWID then
-		hwid = GetHWID()
-	elseif hwid_get then
-		hwid = hwid_get()
-	end
-	
-	-- Fallback to RbxAnalytics ClientId (most stable)
-	if not hwid or hwid == "" or hwid == nil then
-		local success, clientId = pcall(function()
-			return game:GetService("RbxAnalyticsService"):GetClientId()
-		end)
-		if success and clientId then
-			hwid = "RBXID_" .. clientId
-		else
-			-- Last resort - stable UserID fingerprint
-			hwid = "USRID_" .. tostring(game.Players.LocalPlayer.UserId)
-		end
-	end
-	
-	return tostring(hwid)
-end
-
--- Enhanced save with integrity check and anti-tamper signature
-local function saveKey(key, username, hwid)
-	-- Verify file system support (accept multiple possible write/read function names across executors)
-	local hasRead = (type(readfile) == "function") or (type(read_file) == "function")
-	local hasIsFile = (type(isfile) == "function") or (type(is_file) == "function")
-	local hasWrite = (type(writefile) == "function") or (type(write_file) == "function") or (syn and type(syn.write_file) == "function") or (type(write_data) == "function")
-
-	if not hasWrite or not hasRead or not hasIsFile then
-		return false, "File system not supported"
-	end
-	
-	-- Validate inputs
-	if not key or key == "" then
-		return false, "Invalid key"
-	end
-	if not username or username == "" then
-		return false, "Invalid username"
-	end
-	if not hwid or hwid == "" then
-		return false, "Invalid HWID"
-	end
-	
-	-- Create cryptographic signature to prevent tampering
-	local signatureData = key .. username .. hwid .. "HYDRA_VAULT_2026_SIGNATURE"
-	local signature = ""
-	for i = 1, #signatureData do
-		local byte = string.byte(signatureData, i)
-		signature = signature .. string.format("%02x", (byte * 7 + i * 13) % 256)
-	end
-
-	-- pick a write function (some executors provide different names)
-	local writeFn = writefile or write_file or (syn and syn.write_file) or (write_data and write_data)
-	if not writeFn then
-		-- Leave writefile as fallback; availability is checked earlier and user will be notified
-		writeFn = writefile
-	end
-	
-	-- Create data package with checksum and signature
-	local dataTable = {
-		key = tostring(key),
-		username = tostring(username),
-		hwid = tostring(hwid),
-		timestamp = os.time(),
-		version = "4.0",
-		checksum = string.len(key) + string.len(username) + string.len(hwid),
-		signature = signature
-	}
-	
-	-- Encode to JSON
-	local success1, jsonData = pcall(function()
-		return HttpService:JSONEncode(dataTable)
-	end)
-	
-	if not success1 or not jsonData then
-		return false, "JSON encoding failed"
-	end
-	
-	-- Apply 11-layer ultra encryption
-	local success2, encrypted = pcall(function()
-		return ultraEncrypt(jsonData, STORAGE_KEY_1, STORAGE_KEY_2, STORAGE_KEY_3)
-	end)
-	
-	if not success2 or not encrypted or encrypted == "" then
-		return false, "Encryption failed"
-	end
-	
-	-- Write to file with error handling
-	local success3, writeErr = pcall(function()
-		-- Use detected write function for better executor compatibility
-		writeFn(STORAGE_FILE, encrypted)
-	end)
-	
-	if not success3 then
-		return false, "File write failed: " .. tostring(writeErr)
-	end
-	
-	-- Verify the file was written correctly
-	task.wait(0.2)
-	if not isfile(STORAGE_FILE) then
-		return false, "File verification failed"
-	end
-	
-	-- Read back and verify integrity
-	local success4, readBack = pcall(function()
-		return readfile(STORAGE_FILE)
-	end)
-	
-	if not success4 or not readBack or readBack == "" then
-		return false, "File read-back failed"
-	end
-	
-	if readBack ~= encrypted then
-		return false, "Data integrity check failed"
-	end
-	
-	return true, "Key saved successfully"
-end
-
--- Enhanced load with validation
-local function loadKey()
-	-- Verify file system support (accept multiple possible function names)
-	local hasRead = (type(readfile) == "function") or (type(read_file) == "function")
-	local hasIsFile = (type(isfile) == "function") or (type(is_file) == "function")
-	if not hasRead or not hasIsFile then
-		return nil, "File system not supported"
-	end
-	
-	-- Determine filesystem function names for this environment
-	local readFn = readfile or read_file
-	local isfileFn = isfile or is_file
-
-	-- Check if file exists
-	if not isfileFn(STORAGE_FILE) then
-		return nil, "No saved key found"
-	end
-
-	-- Read encrypted file
-	local success1, encrypted = pcall(function()
-		return readFn(STORAGE_FILE)
-	end)
-	
-	if not success1 or not encrypted or encrypted == "" then
-		return nil, "File read failed"
-	end
-	
-	-- Decrypt data
-	local success2, decrypted = pcall(function()
-		return ultraDecrypt(encrypted, STORAGE_KEY_1, STORAGE_KEY_2, STORAGE_KEY_3)
-	end)
-	
-	if not success2 or not decrypted or decrypted == "" then
-		return nil, "Decryption failed"
-	end
-	
-	-- Parse JSON
-	local success3, data = pcall(function()
-		return HttpService:JSONDecode(decrypted)
-	end)
-	
-	if not success3 or not data then
-		return nil, "JSON parsing failed"
-	end
-	
-	-- Validate data structure
-	if type(data) ~= "table" then
-		return nil, "Invalid data structure"
-	end
-	
-	if not data.key or not data.username or not data.hwid then
-		return nil, "Missing required fields"
-	end
-	
-	-- Verify checksum
-	local expectedChecksum = string.len(data.key) + string.len(data.username) + string.len(data.hwid)
-	if data.checksum and data.checksum ~= expectedChecksum then
-		-- Attempt signature-based acceptance for backwards compatibility
-		local signatureData = tostring(data.key) .. tostring(data.username) .. tostring(data.hwid) .. "HYDRA_VAULT_2026_SIGNATURE"
-		local recomputed = ""
-		for i = 1, #signatureData do
-			local byte = string.byte(signatureData, i)
-			recomputed = recomputed .. string.format("%02x", (byte * 7 + i * 13) % 256)
-		end
-		if data.signature and recomputed == data.signature then
-			-- Signature matches despite checksum mismatch - accept (robust fallback)
-			-- (This handles older clients that stored different checksum schemes)
-			print("[HydraLoader] Warning: checksum mismatch but signature verified. Accepting saved key.")
-		else
-			return nil, "Checksum verification failed"
-		end
-	end
-	
-	return data, "Success"
-end
-
--- Safe delete with verification
-local function deleteKey()
-	if not delfile or not isfile then
-		return false
-	end
-	
-	if isfile(STORAGE_FILE) then
-		local success = pcall(function()
-			delfile(STORAGE_FILE)
-		end)
-		return success
-	end
-	
-	return true
-end
-
--- Validate saved data against current system
-local function validateSavedKey(savedData)
-	if not savedData or type(savedData) ~= "table" then
-		return false, "No saved data"
-	end
-	
-	
-	-- Verify all required fields exist
-	if not savedData.key or savedData.key == "" then
-		return false, "Missing key"
-	end
-	
-	if not savedData.username or savedData.username == "" then
-		return false, "Missing username"
-	end
-	
-	if not savedData.hwid or savedData.hwid == "" then
-		return false, "Missing HWID"
-	end
-	
-	-- Get current credentials
-	local currentUsername = game.Players.LocalPlayer.Name
-	local currentHwid = getSystemHWID()
-	
-	
-	-- Username validation
-	if savedData.username ~= currentUsername then
-		return false, "Username mismatch (saved for different user)"
-	end
-	
-	-- HWID validation
-	if savedData.hwid ~= currentHwid then
-		return false, "HWID mismatch (different device)"
-	end
-	
-	return true, "Validation passed"
-end
-
-local function validateKey(keyOverride)
-	local enteredKey = keyOverride or keyInputBox.Text
-	
-	if not enteredKey or enteredKey == "" then
+	if enteredKey == "" then
 		keyStatusText.Text = "Please enter a key"
 		keyStatusText.TextColor3 = Color3.fromRGB(255, 100, 100)
 		return false
@@ -1869,13 +720,36 @@ local function validateKey(keyOverride)
 	keyStatusText.TextColor3 = Color3.fromRGB(200, 200, 200)
 	submitButton.Active = false
 	
-	-- Get Roblox username
 	local robloxUsername = game.Players.LocalPlayer.Name
 	
-	-- Get system HWID using centralized function
-	local hwid = getSystemHWID()
+	local hwid
 	
-	-- URL encode function
+	if gethwid then
+		hwid = gethwid()
+	elseif get_hwid then
+		hwid = get_hwid()
+	elseif hwid then
+		hwid = hwid()
+	elseif GetHWID then
+		hwid = GetHWID()
+	elseif request and request({Url = "https://httpbin.org/get", Method = "GET"}).Headers then
+		local headers = request({Url = "https://httpbin.org/get", Method = "GET"}).Headers
+		if headers["User-Agent"] then
+			hwid = headers["User-Agent"]
+		end
+	end
+	
+	if not hwid or hwid == "" then
+		local success, clientId = pcall(function()
+			return game:GetService("RbxAnalyticsService"):GetClientId()
+		end)
+		if success and clientId then
+			hwid = clientId
+		else
+			hwid = tostring(game.Players.LocalPlayer.UserId) .. "-" .. game.JobId:sub(1, 8)
+		end
+	end
+	
 	local function urlEncode(str)
 		if str then
 			str = string.gsub(str, "\n", "\r\n")
@@ -1887,35 +761,25 @@ local function validateKey(keyOverride)
 		return str
 	end
 	
-	-- Build validation URL with properly encoded parameters
 	local validationUrl = VERIFICATION_URL .. "?key=" .. urlEncode(enteredKey) .. "&username=" .. urlEncode(robloxUsername) .. "&hwid=" .. urlEncode(hwid)
-
-
-
-
-	-- Verify key with server using GET request
+	
 	local success, response = pcall(function()
 		return game:HttpGet(validationUrl)
 	end)
 	
 	if not success then
-
 		keyStatusText.Text = "Server Error: Check Console (F9)"
 		keyStatusText.TextColor3 = Color3.fromRGB(255, 100, 100)
 		submitButton.Active = true
 		submitButton.Text = "VERIFY KEY"
-
-
-
 		return false
 	end
-
+	
 	local parseSuccess, data = pcall(function()
 		return HttpService:JSONDecode(response)
 	end)
 	
 	if not parseSuccess then
-
 		keyStatusText.Text = "Invalid server response"
 		keyStatusText.TextColor3 = Color3.fromRGB(255, 100, 100)
 		submitButton.Active = true
@@ -1927,13 +791,6 @@ local function validateKey(keyOverride)
 		keyStatusText.Text = "Key Valid! Loading..."
 		keyStatusText.TextColor3 = Color3.fromRGB(100, 255, 100)
 		
-		-- Save key securely for auto-login
-		local saveSuccess, saveMsg = saveKey(enteredKey, robloxUsername, hwid)
-		if not saveSuccess then
-			keyStatusText.Text = "Key valid but save failed: " .. tostring(saveMsg)
-		end
-		
-		-- Success animation
 		submitButton.Text = "SUCCESS!"
 		for i = 1, 3 do
 			TweenService:Create(keyBorderGlow, TweenInfo.new(0.2), {
@@ -1948,7 +805,6 @@ local function validateKey(keyOverride)
 			task.wait(0.2)
 		end
 		
-		-- Fade out key system with shadows
 		TweenService:Create(keyContainer, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
 			Size = UDim2.new(0, 0, 0, 0),
 			Rotation = 90
@@ -1976,8 +832,7 @@ local function validateKey(keyOverride)
 		keyStatusText.TextColor3 = Color3.fromRGB(255, 100, 100)
 		submitButton.Text = "INVALID!"
 		submitButton.Active = true
-
-		-- Error shake animation
+		
 		for i = 1, 3 do
 			keyContainer.Position = UDim2.new(0.5, -10, 0.5, 0)
 			task.wait(0.05)
@@ -1993,77 +848,16 @@ local function validateKey(keyOverride)
 	end
 end
 
--- Button Click Handler
 submitButton.MouseButton1Click:Connect(function()
 	validateKey()
 end)
 
--- Enter Key Handler
 keyInputBox.FocusLost:Connect(function(enterPressed)
 	if enterPressed then
 		validateKey()
 	end
 end)
 
--- ═══════════════════════════════════════════════════════════════════════════
--- AUTO-LOGIN WITH SAVED KEY V4.0
--- ═══════════════════════════════════════════════════════════════════════════
-
--- Ultra-robust auto-login system
-task.spawn(function()
-	task.wait(0.8) -- Wait for UI to fully load
-	
-	-- Attempt to load saved key
-	local savedData, loadMsg = loadKey()
-	
-	-- Debug: Show load status
-	if not savedData then
-		-- No saved key or load failed - normal first-time use
-		forgetKeyButton.Visible = false
-		return
-	end
-	
-	-- Validate the saved key data
-	local isValid, validMsg = validateSavedKey(savedData)
-	
-	if not isValid then
-		-- Saved key is for different user/device
-		keyStatusText.Text = "Saved key invalid: " .. tostring(validMsg)
-		keyStatusText.TextColor3 = Color3.fromRGB(255, 150, 100)
-		-- Delete invalid key
-		deleteKey()
-		forgetKeyButton.Visible = false
-		return
-	end
-	
-	-- We have a valid saved key - ALWAYS validate with server (no bypass possible)
-	keyStatusText.Text = "Found saved key - verifying with server..."
-	keyStatusText.TextColor3 = Color3.fromRGB(100, 200, 255)
-	forgetKeyButton.Visible = true
-	
-	-- Visual feedback
-	task.wait(0.3)
-	
-	-- CRITICAL: ALWAYS validate with server API - saved keys can NEVER bypass server validation
-	-- This prevents users from editing the saved file to bypass expiration
-	local loginSuccess = validateKey(savedData.key)
-	
-	if loginSuccess then
-		-- Auto-login successful - server confirmed key is still valid
-		keyStatusText.Text = "Auto-login successful!"
-		keyStatusText.TextColor3 = Color3.fromRGB(100, 255, 100)
-	else
-		-- Key expired or invalid according to SERVER - delete it
-		keyStatusText.Text = "Saved key expired - enter new key"
-		keyStatusText.TextColor3 = Color3.fromRGB(255, 200, 100)
-		keyInputBox.Text = ""
-		-- Delete expired key from storage
-		deleteKey()
-		forgetKeyButton.Visible = false
-	end
-end)
-
--- Create ScreenGui
 local loader = Instance.new("ScreenGui")
 loader.Name = "HydraLoader"
 loader.ResetOnSpawn = false
@@ -2072,7 +866,6 @@ loader.DisplayOrder = 999
 loader.IgnoreGuiInset = true
 loader.Parent = game.CoreGui
 
--- Main Background with advanced gradient
 local background = Instance.new("Frame")
 background.Name = "Background"
 background.Size = UDim2.new(1, 0, 1, 0)
@@ -2081,7 +874,6 @@ background.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
 background.BorderSizePixel = 0
 background.Parent = loader
 
--- Animated mesh background pattern
 local meshPattern = Instance.new("Frame")
 meshPattern.Name = "MeshPattern"
 meshPattern.Size = UDim2.new(1, 0, 1, 0)
@@ -2099,7 +891,6 @@ meshGradient.Color = ColorSequence.new{
 meshGradient.Rotation = 45
 meshGradient.Parent = meshPattern
 
--- Animate mesh pattern
 task.spawn(function()
 	local offset = 0
 	while loader.Parent do
@@ -2109,7 +900,6 @@ task.spawn(function()
 	end
 end)
 
--- Scanline overlay effect
 local scanlines = Instance.new("Frame")
 scanlines.Name = "Scanlines"
 scanlines.Size = UDim2.new(1, 0, 1, 0)
@@ -2135,7 +925,6 @@ scanlineGradient.Transparency = NumberSequence.new{
 scanlineGradient.Rotation = 90
 scanlineGradient.Parent = scanlines
 
--- Animate scanlines
 task.spawn(function()
 	while loader.Parent do
 		for i = 0, 180 do
@@ -2146,7 +935,6 @@ task.spawn(function()
 	end
 end)
 
--- Background floating squares
 for i = 1, 80 do
 	local bgSquare = Instance.new("Frame")
 	bgSquare.Size = UDim2.new(0, math.random(30, 100), 0, math.random(30, 100))
@@ -2168,7 +956,6 @@ for i = 1, 80 do
 	bgSquareStroke.Transparency = 0.9
 	bgSquareStroke.Parent = bgSquare
 	
-	-- Floating animation across entire screen
 	task.spawn(function()
 		while loader.Parent do
 			local randomX = math.random(0, 100) / 100
@@ -2181,7 +968,6 @@ for i = 1, 80 do
 			end
 		end)
 	
-	-- Slow rotation
 	task.spawn(function()
 		local rotSpeed = math.random(2, 8) / 10 * (math.random(0, 1) == 0 and 1 or -1)
 		while loader.Parent do
@@ -2190,7 +976,6 @@ for i = 1, 80 do
 			end
 		end)
 	
-	-- Subtle pulse transparency
 	task.spawn(function()
 		while loader.Parent do
 			local newTransparency = 0.95 + math.random() * 0.04
@@ -2202,7 +987,6 @@ for i = 1, 80 do
 		end)
 end
 
--- Container shadow layers for depth
 local containerShadow3 = Instance.new("Frame")
 containerShadow3.Size = UDim2.new(0, 680, 0, 440)
 containerShadow3.Position = UDim2.new(0.5, 10, 0.5, 10)
@@ -2245,7 +1029,6 @@ local shadow1Corner = Instance.new("UICorner")
 shadow1Corner.CornerRadius = UDim.new(0, 22)
 shadow1Corner.Parent = containerShadow1
 
--- Main container with glass morphism
 local container = Instance.new("Frame")
 container.Name = "Container"
 container.Size = UDim2.new(0, 650, 0, 410)
@@ -2261,7 +1044,6 @@ local containerCorner = Instance.new("UICorner")
 containerCorner.CornerRadius = UDim.new(0, 20)
 containerCorner.Parent = container
 
--- Glass effect overlay
 local glassOverlay = Instance.new("Frame")
 glassOverlay.Size = UDim2.new(1, 0, 0.5, 0)
 glassOverlay.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -2273,7 +1055,6 @@ local glassCorner = Instance.new("UICorner")
 glassCorner.CornerRadius = UDim.new(0, 20)
 glassCorner.Parent = glassOverlay
 
--- Multi-layer border glow
 local borderGlow1 = Instance.new("UIStroke")
 borderGlow1.Color = Color3.fromRGB(100, 255, 100)
 borderGlow1.Thickness = 3
@@ -2299,7 +1080,6 @@ local border2Corner = Instance.new("UICorner")
 border2Corner.CornerRadius = UDim.new(0, 22)
 border2Corner.Parent = borderGlow2
 
--- Pulse border animation
 task.spawn(function()
 	while loader.Parent do
 		TweenService:Create(borderGlow1, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
@@ -2321,7 +1101,6 @@ task.spawn(function()
 	end
 end)
 
--- Hexagon pattern background
 for i = 1, 25 do
 	local hex = Instance.new("Frame")
 	hex.Size = UDim2.new(0, math.random(40, 80), 0, math.random(40, 80))
@@ -2342,10 +1121,8 @@ for i = 1, 25 do
 	hexStroke.Transparency = 0.92
 	hexStroke.Parent = hex
 	
-	-- Random positions scattered around
 	hex.Position = UDim2.new(math.random(-10, 110) / 100, 0, math.random(-10, 110) / 100, 0)
 	
-	-- Float animation with random movement
 	task.spawn(function()
 		while loader.Parent do
 			local randomX = math.random(-10, 110) / 100
@@ -2358,7 +1135,6 @@ for i = 1, 25 do
 			end
 		end)
 	
-	-- Rotation animation
 	task.spawn(function()
 		local rotSpeed = math.random(3, 10) / 10 * (math.random(0, 1) == 0 and 1 or -1)
 		while loader.Parent do
@@ -2368,7 +1144,6 @@ for i = 1, 25 do
 	end)
 end
 
--- Logo container with advanced effects
 local logoContainer = Instance.new("Frame")
 logoContainer.Size = UDim2.new(0, 320, 0, 320)
 logoContainer.Position = UDim2.new(0.5, 0, 0.42, 0)
@@ -2377,7 +1152,6 @@ logoContainer.BackgroundTransparency = 1
 logoContainer.ZIndex = 6
 logoContainer.Parent = container
 
--- Outer spinning ring (hidden)
 local outerRing = Instance.new("ImageLabel")
 outerRing.Size = UDim2.new(1.4, 0, 1.4, 0)
 outerRing.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -2396,7 +1170,6 @@ task.spawn(function()
 	end
 end)
 
--- Middle spinning ring (hidden)
 local middleRing = Instance.new("ImageLabel")
 middleRing.Size = UDim2.new(1.2, 0, 1.2, 0)
 middleRing.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -2415,7 +1188,6 @@ task.spawn(function()
 	end
 end)
 
--- Inner glow ring (hidden)
 local innerGlowRing = Instance.new("ImageLabel")
 innerGlowRing.Size = UDim2.new(1.1, 0, 1.1, 0)
 innerGlowRing.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -2434,7 +1206,6 @@ task.spawn(function()
 	end
 end)
 
--- Main logo
 local hydraLogo = Instance.new("ImageLabel")
 hydraLogo.Size = UDim2.new(0.9, 0, 0.9, 0)
 hydraLogo.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -2446,7 +1217,6 @@ hydraLogo.ScaleType = Enum.ScaleType.Fit
 hydraLogo.ZIndex = 11
 hydraLogo.Parent = logoContainer
 
--- Ultra-modern title
 local titleText = Instance.new("TextLabel")
 titleText.Size = UDim2.new(1, 0, 0, 60)
 titleText.Position = UDim2.new(0, 0, 0.02, 0)
@@ -2468,7 +1238,6 @@ titleGradient.Color = ColorSequence.new{
 }
 titleGradient.Parent = titleText
 
--- Animate title gradient
 task.spawn(function()
 	while loader.Parent do
 		for i = 0, 360, 2 do
@@ -2479,7 +1248,6 @@ task.spawn(function()
 	end
 end)
 
--- Subtitle
 local subtitleText = Instance.new("TextLabel")
 subtitleText.Size = UDim2.new(1, 0, 0, 25)
 subtitleText.Position = UDim2.new(0, 0, 0.12, 0)
@@ -2492,7 +1260,6 @@ subtitleText.TextTransparency = 0.3
 subtitleText.ZIndex = 15
 subtitleText.Parent = container
 
--- Loading status
 local loadingText = Instance.new("TextLabel")
 loadingText.Size = UDim2.new(1, 0, 0, 30)
 loadingText.Position = UDim2.new(0, 0, 0.58, 0)
@@ -2504,7 +1271,6 @@ loadingText.Font = Enum.Font.GothamBold
 loadingText.ZIndex = 15
 loadingText.Parent = container
 
--- Detailed status
 local statusText = Instance.new("TextLabel")
 statusText.Size = UDim2.new(1, 0, 0, 22)
 statusText.Position = UDim2.new(0, 0, 0.64, 0)
@@ -2517,7 +1283,6 @@ statusText.TextTransparency = 0.4
 statusText.ZIndex = 15
 statusText.Parent = container
 
--- Ultra-modern progress container
 local progressContainer = Instance.new("Frame")
 progressContainer.Size = UDim2.new(0, 580, 0, 50)
 progressContainer.Position = UDim2.new(0.5, -9, 0.77, 0)
@@ -2526,7 +1291,6 @@ progressContainer.BackgroundTransparency = 1
 progressContainer.ZIndex = 15
 progressContainer.Parent = container
 
--- Progress bar background
 local progressBG = Instance.new("Frame")
 progressBG.Size = UDim2.new(1, 0, 0, 8)
 progressBG.Position = UDim2.new(0, 0, 0.5, 0)
@@ -2546,7 +1310,6 @@ progressBGStroke.Thickness = 1
 progressBGStroke.Transparency = 0.5
 progressBGStroke.Parent = progressBG
 
--- Progress fill with advanced effects
 local progressFill = Instance.new("Frame")
 progressFill.Size = UDim2.new(0, 0, 1, 0)
 progressFill.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
@@ -2558,7 +1321,6 @@ local progressFillCorner = Instance.new("UICorner")
 progressFillCorner.CornerRadius = UDim.new(1, 0)
 progressFillCorner.Parent = progressFill
 
--- Progress gradient
 local progressGradient = Instance.new("UIGradient")
 progressGradient.Color = ColorSequence.new{
 	ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 200, 50)),
@@ -2567,7 +1329,6 @@ progressGradient.Color = ColorSequence.new{
 }
 progressGradient.Parent = progressFill
 
--- Animated shimmer
 local shimmer = Instance.new("Frame")
 shimmer.Size = UDim2.new(0.2, 0, 1, 0)
 shimmer.Position = UDim2.new(-0.2, 0, 0, 0)
@@ -2599,7 +1360,6 @@ task.spawn(function()
 	end
 end)
 
--- Glow effects
 for i = 1, 3 do
 	local glow = Instance.new("Frame")
 	glow.Size = UDim2.new(1, i * 10, 1, i * 10)
@@ -2616,7 +1376,6 @@ for i = 1, 3 do
 	glowCorner.Parent = glow
 end
 
--- Percentage text
 local percentText = Instance.new("TextLabel")
 percentText.Size = UDim2.new(0, 100, 0, 30)
 percentText.Position = UDim2.new(1, 10, 0.5, 0)
@@ -2631,12 +1390,11 @@ percentText.ZIndex = 19
 percentText.TextTransparency = 1
 percentText.Parent = progressContainer
 
--- Version info
 local versionText = Instance.new("TextLabel")
 versionText.Size = UDim2.new(1, 0, 0, 20)
 versionText.Position = UDim2.new(0, 0, 0.93, 0)
 versionText.BackgroundTransparency = 1
-versionText.Text = "Version 5.0.0 | By xeno"
+versionText.Text = "Version 1.0.0 | By xeno"
 versionText.TextColor3 = Color3.fromRGB(80, 160, 80)
 versionText.TextSize = 11
 versionText.Font = Enum.Font.GothamMedium
@@ -2644,7 +1402,6 @@ versionText.TextTransparency = 0.5
 versionText.ZIndex = 15
 versionText.Parent = container
 
--- Enhanced logo pulse
 local function pulseLogo()
 	while loader.Parent do
 		TweenService:Create(hydraLogo, TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
@@ -2660,18 +1417,16 @@ local function pulseLogo()
 	end
 end
 
--- Loading stages
 local loadingStages = {
 	{text = "INITIALIZING SYSTEM", status = "Establishing secure connection", duration = 0.6},
 	{text = "LOADING CORE MODULES", status = "Importing essential libraries", duration = 0.7},
 	{text = "VALIDATING INTEGRITY", status = "Running security checks", duration = 0.6},
 	{text = "INJECTING FRAMEWORK", status = "Deploying runtime environment", duration = 0.8},
-	{text = "LOADING SECURITY MODULES", status = "Initializing protection layers", duration = 0.5},
+	{text = "OPTIMIZING PERFORMANCE", status = "Fine-tuning execution pipeline", duration = 0.5},
 	{text = "FINALIZING SETUP", status = "Preparing user interface", duration = 0.5},
 	{text = "READY TO LAUNCH", status = "All systems operational", duration = 0.3}
 }
 
--- Advanced loading animation
 local function animateLoading(duration)
 	duration = duration or 5
 	
@@ -2680,7 +1435,6 @@ local function animateLoading(duration)
 	
 	task.spawn(pulseLogo)
 	
-	-- Entrance animation with stagger
 	container.Position = UDim2.new(0.5, 0, -0.5, 0)
 	container.Size = UDim2.new(0, 0, 0, 0)
 	containerShadow1.Position = UDim2.new(0.5, 4, -0.5, 4)
@@ -2720,7 +1474,6 @@ local function animateLoading(duration)
 		local elapsed = tick() - startTime
 		local progress = math.min(elapsed / duration, 1)
 		
-		-- Update stage
 		local currentStageProgress = (progress * #loadingStages)
 		if math.floor(currentStageProgress) + 1 > stageIndex then
 			stageIndex = math.min(math.floor(currentStageProgress) + 1, #loadingStages)
@@ -2728,7 +1481,6 @@ local function animateLoading(duration)
 				loadingText.Text = loadingStages[stageIndex].text
 				statusText.Text = loadingStages[stageIndex].status
 				
-				-- Text animation
 				loadingText.TextSize = 22
 				TweenService:Create(loadingText, TweenInfo.new(0.4, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {
 					TextSize = 18
@@ -2741,14 +1493,12 @@ local function animateLoading(duration)
 			end
 		end
 		
-		-- Smooth progress
 		TweenService:Create(progressFill, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			Size = UDim2.new(progress, 0, 1, 0)
 		}):Play()
 		
 		percentText.Text = math.floor(progress * 100) .. "%"
 		
-		-- Color transition
 		local hue = 120 + (progress * 60)
 		progressFill.BackgroundColor3 = Color3.fromHSV(hue / 360, 0.7, 1)
 		percentText.TextColor3 = Color3.fromHSV(hue / 360, 0.7, 1)
@@ -2756,13 +1506,11 @@ local function animateLoading(duration)
 		task.wait(0.03)
 	end
 	
-	-- Completion
 	progressFill.Size = UDim2.new(1, 0, 1, 0)
 	percentText.Text = "100%"
 	loadingText.Text = "LAUNCH COMPLETE"
 	statusText.Text = "Welcome to Hydra Hub"
 	
-	-- Success flash
 	for i = 1, 4 do
 		TweenService:Create(progressFill, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {
 			BackgroundColor3 = Color3.fromRGB(200, 255, 200)
@@ -2785,9 +1533,7 @@ local function animateLoading(duration)
 	task.wait(0.6)
 end
 
--- Advanced fade out
 local function fadeOut()
-	-- Shrink animation
 	TweenService:Create(container, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
 		Size = UDim2.new(0, 0, 0, 0),
 		Rotation = 180
@@ -2805,7 +1551,6 @@ local function fadeOut()
 		Size = UDim2.new(0, 0, 0, 0)
 	}):Play()
 	
-	-- Fade everything
 	for _, obj in pairs({background, meshPattern, scanlines}) do
 		TweenService:Create(obj, TweenInfo.new(0.8, Enum.EasingStyle.Sine), {
 			BackgroundTransparency = 1
@@ -2836,7 +1581,6 @@ local function fadeOut()
 	loader:Destroy()
 end
 
--- Public API
 local LoaderAPI = {}
 
 function LoaderAPI:Load(duration)
@@ -2862,14 +1606,13 @@ function LoaderAPI:Close()
 	fadeOut()
 end
 
--- Game-specific scripts
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1465459884819747041/2ckZtKixS4wmkwP6zdAolLjbtnajYerXpriw8EupSygqTZ4FIl7nfGsym7ZkjhNpke9h"
+
 local GAME_SCRIPTS = {
 	[18336470541] = "https://raw.githubusercontent.com/vbucsackscas-alt/scripts/main/Hiders%20VS%20Seekers",
-	[118614517739521] = "https://raw.githubusercontent.com/vbucsackscas-alt/scripts/main/Blind%20Shot",
-	[124311897657957] = "https://raw.githubusercontent.com/vbucsackscas-alt/scripts/main/Break%20a%20Lucky%20Block"
+	[118614517739521] = "https://raw.githubusercontent.com/vbucsackscas-alt/scripts/main/Blind%20Shot"
 }
 
--- Send webhook using ultra-secure encrypted webhook system
 local function sendWebhook(player, gameName, placeId, scriptName)
 	local HttpService = game:GetService("HttpService")
 	local MarketplaceService = game:GetService("MarketplaceService")
@@ -2935,101 +1678,55 @@ local function sendWebhook(player, gameName, placeId, scriptName)
 		["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ", os.time())
 	}
 	
-	-- Use the ultra-secure encrypted webhook system
-
-	local success, result = SecurityCore:SecureHttpPost({
-		content = "",
-		embeds = {embed}
-	})
+	local payload = {
+		["username"] = "Hydra Hub Logger",
+		["embeds"] = {embed}
+	}
 	
-	if success then
-
-	else
-
-		-- Fallback to request if available
-		pcall(function()
-			if request then
-				local webhook = SecurityCore:DecryptWebhook()
-				request({
-					Url = webhook,
-					Method = "POST",
-					Headers = {
-						["Content-Type"] = "application/json"
-					},
-					Body = HttpService:JSONEncode({
-						content = "",
-						embeds = {embed}
-					})
-				})
-
-			end
-		end)
-	end
+	pcall(function()
+		request({
+			Url = WEBHOOK_URL,
+			Method = "POST",
+			Headers = {
+				["Content-Type"] = "application/json"
+			},
+			Body = HttpService:JSONEncode(payload)
+		})
+	end)
 end
 
--- Auto-run with game detection
 task.spawn(function()
-	-- Wait for key system to be validated
 	while keySystemGui and keySystemGui.Parent do
 		task.wait(0.1)
 	end
 	
-	LoaderAPI:Load(5) -- 5 second loading
+	LoaderAPI:Load(5)
 	
 	local Players = game:GetService("Players")
 	local player = Players.LocalPlayer
 	local placeId = game.PlaceId
 	
-	-- Get game name
 	local gameName = "Unknown Game"
 	pcall(function()
 		gameName = game:GetService("MarketplaceService"):GetProductInfo(placeId).Name
 	end)
 	
-	-- Check if there's a script for this game
 	local scriptUrl = GAME_SCRIPTS[placeId]
 	local scriptName = scriptUrl and gameName or "None"
 	
-	-- Load game-specific script if available
+	pcall(function()
+		sendWebhook(player, gameName, placeId, scriptName)
+	end)
+	
 	if scriptUrl then
 		local success, result = pcall(function()
 			return game:HttpGet(scriptUrl)
 		end)
 		
 		if success then
-			local loadSuccess, loadError = pcall(function()
+			pcall(function()
 				loadstring(result)()
 			end)
-			
-			if loadSuccess then
-
-			else
-
-			end
-		else
-
-		end
-	else
-		-- No game-specific script - load Universal script instead
-
-		local universalUrl = "https://raw.githubusercontent.com/vbucsackscas-alt/scripts/main/Universal"
-		
-		local success, result = pcall(function()
-			return game:HttpGet(universalUrl)
-		end)
-		
-		if success then
-			local loadSuccess, loadError = pcall(function()
-				loadstring(result)()
-			end)
-			
-			if loadSuccess then
-
-			else
-
-			end
-		else
-
 		end
 	end
 end)
